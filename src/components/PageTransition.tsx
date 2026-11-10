@@ -1,6 +1,7 @@
 
 import type { ReactNode } from "react";
 import { motion, useReducedMotion } from "motion/react";
+import "./PomodoroTimer.css";
 
 type PageTransitionProps = {
   children: ReactNode;

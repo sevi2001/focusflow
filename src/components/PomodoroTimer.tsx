@@ -1,12 +1,17 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { recordFocusSession } from "../lib/studyStats";
-import { motion } from "motion/react";
+import { motion, AnimatePresence, useReducedMotion } from "motion/react";
+import { createPortal } from "react-dom";
+import "./PomodoroTimer.css";
 import {
   Play,
   Pause,
   RotateCcw,
   Timer,
+  Sparkles,
+  Moon,
+  Coffee,
   Settings2,
   Bell,
   BellOff,
@@ -131,6 +136,7 @@ function getNextMode(
 }
 
 export default function PomodoroTimer() {
+  const reducedMotion = useReducedMotion();
   const [settings, setSettings] = useState(readSettings);
   const [draftSettings, setDraftSettings] = useState(readSettings);
   const [stats, setStats] = useState(readStats);
@@ -369,7 +375,6 @@ recordFocusSession(currentSettings.focus);
     Math.max(0, ((duration - timeLeft) / duration) * 100)
   );
 
-  const circumference = 2 * Math.PI * 98;
 
   const modeLabels: Record<Mode, string> = {
     focus: "Focus",
@@ -377,329 +382,165 @@ recordFocusSession(currentSettings.focus);
     long: "Long Break",
   };
 
-  return (
-    <div className="w-full rounded-3xl border border-white/15 bg-[#151a30]/90 p-5 text-center shadow-2xl backdrop-blur-xl sm:p-6">
-      {/* Header */}
-      <div className="mb-5 flex items-center justify-between">
-        <div className="flex items-center gap-2 text-amber-200">
-          <Timer size={20} />
-          <h2 className="text-lg font-semibold">Focus Timer</h2>
-        </div>
+  const modeMessages: Record<Mode, string> = {
+    focus: "Breathe in. Find your flow.",
+    short: "A gentle moment to recharge.",
+    long: "Rest well. You've earned it.",
+  };
 
-        <button
-          onClick={() => {
-            setDraftSettings(settings);
-            setShowSettings(true);
-          }}
-          aria-label="Timer settings"
-          className="rounded-xl border border-white/10 p-2 text-slate-300 transition hover:bg-white/10 hover:text-amber-200"
-        >
-          <Settings2 size={20} />
+  const ModeIcon = mode === "focus" ? Sparkles : mode === "short" ? Coffee : Moon;
+  const todayStats = stats.date === localDateKey()
+    ? stats
+    : { completedSessions: 0, totalMinutes: 0 };
+
+  return (
+    <section className={`ff-timer ff-timer--${mode}`} aria-label="Pomodoro timer">
+      <div className="ff-timer__glow" aria-hidden="true" />
+      <div className="ff-timer__header">
+        <div className="ff-timer__heading">
+          <span className="ff-timer__heading-icon"><Timer size={19} /></span>
+          <div>
+            <h2>Focus Timer</h2>
+            <p>Your little pocket of calm</p>
+          </div>
+        </div>
+        <button type="button" className="ff-timer__icon-button" aria-label="Timer settings"
+          onClick={() => { setDraftSettings(settings); setShowSettings(true); }}>
+          <Settings2 size={19} />
         </button>
       </div>
 
-      {/* Mode selection */}
-      <div className="mb-7 flex flex-wrap justify-center gap-2">
+      <div className="ff-timer__modes" role="group" aria-label="Timer mode">
         {(["focus", "short", "long"] as Mode[]).map((item) => (
-          <button
-            key={item}
-            onClick={() => changeMode(item)}
-            className={`rounded-full px-3 py-2 text-xs font-medium transition ${
-              mode === item
-                ? "bg-amber-300 text-slate-900"
-                : "bg-white/10 text-slate-300 hover:bg-white/20"
-            }`}
-          >
+          <button type="button" key={item} onClick={() => changeMode(item)}
+            aria-pressed={mode === item}
+            className={`ff-timer__mode ${mode === item ? "is-active" : ""}`}>
             {modeLabels[item]}
           </button>
         ))}
       </div>
 
-      {/* Animated circular timer */}
-      <div className="relative mx-auto mb-7 flex h-56 w-56 items-center justify-center">
-        <svg
-          className="absolute inset-0 -rotate-90"
-          viewBox="0 0 224 224"
-        >
-          <circle
-            cx="112"
-            cy="112"
-            r="98"
-            fill="none"
-            stroke="rgba(255,255,255,0.09)"
-            strokeWidth="9"
-          />
-          <motion.circle
-            cx="112"
-            cy="112"
-            r="98"
-            fill="none"
-            stroke="#fcd34d"
-            strokeWidth="9"
-            strokeLinecap="round"
-            strokeDasharray={circumference}
-            animate={{
-              strokeDashoffset:
-                circumference * (1 - progress / 100),
-            }}
-            transition={{ duration: 0.3 }}
-          />
-        </svg>
-
-        <div>
-          <motion.div
-            key={mode}
-            initial={{ opacity: 0, scale: 0.85 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="text-5xl font-bold tracking-wider"
-          >
-            {formattedTime}
-          </motion.div>
-
-          <p className="mt-3 text-sm text-slate-400">
-            {mode === "focus"
-              ? "Time to concentrate ✨"
-              : "Enjoy your break ☕"}
-          </p>
-
-          {isRunning && (
-            <motion.div
-              animate={{ opacity: [0.4, 1, 0.4] }}
-              transition={{ repeat: Infinity, duration: 2 }}
-              className="mt-3 text-xs text-emerald-300"
-            >
-              ● Timer running
+      <div className="ff-timer__dial-wrap">
+        <div className={`ff-timer__dial ${isRunning ? "is-running" : ""}`}>
+          <div className="ff-timer__dial-halo" aria-hidden="true" />
+          <svg className="ff-timer__ring" viewBox="0 0 240 240" aria-hidden="true">
+            <defs>
+              <linearGradient id="ff-timer-ring-gradient" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor="var(--ff-ring-start)" />
+                <stop offset="100%" stopColor="var(--ff-ring-end)" />
+              </linearGradient>
+            </defs>
+            <circle cx="120" cy="120" r="104" className="ff-timer__ring-track" />
+            <motion.circle cx="120" cy="120" r="104"
+              className="ff-timer__ring-progress"
+              stroke="url(#ff-timer-ring-gradient)"
+              strokeDasharray={2 * Math.PI * 104}
+              animate={{ strokeDashoffset: (2 * Math.PI * 104) * (1 - progress / 100) }}
+              transition={reducedMotion ? { duration: 0 } : { duration: 0.35, ease: "easeOut" }}
+            />
+          </svg>
+          <div className="ff-timer__dial-content">
+            <span className="ff-timer__dial-label"><ModeIcon size={14} /> {modeLabels[mode].toUpperCase()}</span>
+            <motion.div key={mode} className="ff-timer__time"
+              initial={reducedMotion ? false : { opacity: 0, scale: 0.92 }}
+              animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3 }}
+              role="timer" aria-label={`${minutes} minutes ${seconds} seconds remaining`}>
+              {formattedTime}
             </motion.div>
-          )}
+            <span className="ff-timer__dial-subtitle">{modeMessages[mode]}</span>
+            <span className={`ff-timer__status ${isRunning ? "is-running" : ""}`}>
+              <span className="ff-timer__status-dot" />
+              {isRunning ? "Timer running" : timeLeft < duration ? "Paused" : "Ready when you are"}
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* Controls */}
-      <div className="flex flex-wrap justify-center gap-3">
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={toggleTimer}
-          className="flex items-center gap-2 rounded-full bg-amber-300 px-7 py-3 font-semibold text-slate-900 transition hover:bg-amber-200"
-        >
-          {isRunning ? <Pause size={18} /> : <Play size={18} />}
-          {isRunning ? "Pause" : "Start"}
+      <div className="ff-timer__progress-caption">
+        <span>{Math.round(progress)}% complete</span>
+        <span>{settings[mode]} min session</span>
+      </div>
+
+      <div className="ff-timer__controls">
+        <button type="button" className="ff-timer__secondary" onClick={resetTimer}
+          aria-label="Reset timer" title="Reset timer"><RotateCcw size={19} /></button>
+        <motion.button type="button" className="ff-timer__primary" onClick={toggleTimer}
+          whileHover={reducedMotion ? undefined : { scale: 1.04 }}
+          whileTap={reducedMotion ? undefined : { scale: 0.96 }}>
+          {isRunning ? <Pause size={19} fill="currentColor" /> : <Play size={19} fill="currentColor" />}
+          {isRunning ? "Pause" : timeLeft < duration ? "Resume" : "Start Focus"}
         </motion.button>
-
-        <button
-          onClick={resetTimer}
-          title="Reset timer"
-          aria-label="Reset timer"
-          className="rounded-full border border-white/20 p-3 transition hover:bg-white/10"
-        >
-          <RotateCcw size={19} />
-        </button>
-
-        <button
-          onClick={skipSession}
-          title="Skip session"
-          aria-label="Skip session"
-          className="rounded-full border border-white/20 p-3 transition hover:bg-white/10"
-        >
-          <SkipForward size={19} />
-        </button>
+        <button type="button" className="ff-timer__secondary" onClick={skipSession}
+          aria-label="Skip session" title="Skip session"><SkipForward size={19} /></button>
       </div>
 
-      {/* Message */}
-      {message && (
-        <motion.p
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          role="status"
-          className="mt-5 rounded-xl bg-amber-300/10 p-3 text-sm text-amber-200"
-        >
-          {message}
-        </motion.p>
-      )}
+      <AnimatePresence mode="wait">
+        {message && (
+          <motion.p key={message} role="status" className="ff-timer__message"
+            initial={reducedMotion ? false : { opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+            {message}
+          </motion.p>
+        )}
+      </AnimatePresence>
 
-      {/* Statistics */}
-      <div className="mt-7 grid grid-cols-2 gap-3">
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-          <Flame className="mx-auto mb-2 text-orange-300" size={22} />
-          <p className="text-2xl font-bold">
-            {stats.date === localDateKey()
-              ? stats.completedSessions
-              : 0}
-          </p>
-          <p className="mt-1 text-xs text-slate-400">
-            Sessions Today
-          </p>
+      <div className="ff-timer__stats">
+        <div className="ff-timer__stat">
+          <span className="ff-timer__stat-icon"><Flame size={20} /></span>
+          <div><strong>{todayStats.completedSessions}</strong><small>Sessions today</small></div>
         </div>
-
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-          <CheckCircle2
-            className="mx-auto mb-2 text-emerald-300"
-            size={22}
-          />
-          <p className="text-2xl font-bold">
-            {stats.date === localDateKey()
-              ? stats.totalMinutes
-              : 0}
-          </p>
-          <p className="mt-1 text-xs text-slate-400">
-            Focus Minutes
-          </p>
+        <div className="ff-timer__stat">
+          <span className="ff-timer__stat-icon"><CheckCircle2 size={20} /></span>
+          <div><strong>{todayStats.totalMinutes}</strong><small>Focus minutes</small></div>
         </div>
       </div>
-
-      <p className="mt-5 text-xs text-slate-400">
-        {settings.autoBreaks
-          ? "☕ Automatic breaks enabled"
-          : "☕ Manual breaks enabled"}
+      <p className="ff-timer__footer-note"><Sparkles size={14} />
+        {settings.autoBreaks ? "Automatic breaks enabled" : "Manual breaks enabled"}
       </p>
 
-      {/* Settings Modal */}
-      {showSettings && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4"
-          role="presentation"
-        >
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            role="dialog"
-            aria-modal="true"
+      {showSettings && createPortal(
+        <div className="ff-timer-modal-backdrop" onMouseDown={(event) => {
+          if (event.target === event.currentTarget) setShowSettings(false);
+        }}>
+          <motion.div className="ff-timer-modal" role="dialog" aria-modal="true"
             aria-label="Pomodoro timer settings"
-            className="max-h-[85vh] w-full max-w-md overflow-y-auto rounded-3xl border border-white/15 bg-[#20263e] p-6 text-left shadow-2xl"
-          >
-            <div className="mb-6 flex items-center justify-between">
-              <h3 className="flex items-center gap-2 text-xl font-bold">
-                <Settings2 size={21} className="text-amber-300" />
-                Timer Settings
-              </h3>
-
-              <button
-                onClick={() => setShowSettings(false)}
-                aria-label="Close settings"
-                className="rounded-lg p-2 hover:bg-white/10"
-              >
-                <X size={20} />
-              </button>
+            initial={reducedMotion ? false : { opacity: 0, y: 16, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}>
+            <div className="ff-timer-modal__header">
+              <div><h3><Settings2 size={20} /> Timer Settings</h3>
+                <p>Make your study routine your own.</p></div>
+              <button type="button" className="ff-timer__icon-button" onClick={() => setShowSettings(false)} aria-label="Close settings"><X size={20} /></button>
             </div>
-
-            <p className="mb-5 text-sm text-slate-400">
-              Customize your perfect study routine.
-            </p>
-
-            <div className="grid grid-cols-3 gap-3">
+            <div className="ff-timer-modal__durations">
               {(["focus", "short", "long"] as Mode[]).map((item) => (
-                <label key={item} className="block">
-                  <span className="mb-2 block text-xs text-slate-300">
-                    {modeLabels[item]}
-                  </span>
-
-                  <input
-                    type="number"
-                    min={1}
-                    max={180}
-                    value={draftSettings[item]}
-                    onChange={(event) =>
-                      setDraftSettings((previous) => ({
-                        ...previous,
-                        [item]: Number(event.target.value),
-                      }))
-                    }
-                    className="w-full rounded-xl border border-white/15 bg-white/10 px-3 py-3 text-center text-white outline-none focus:border-amber-300"
-                  />
+                <label key={item}><span>{modeLabels[item]}</span>
+                  <input type="number" min={1} max={180} value={draftSettings[item]}
+                    onChange={(event) => setDraftSettings((previous) => ({ ...previous, [item]: Number(event.target.value) }))} />
                 </label>
               ))}
             </div>
-
-            <p className="mt-2 text-xs text-slate-500">
-              Duration in minutes (1–180).
-            </p>
-
-            <div className="mt-7 space-y-4">
-              <label className="flex cursor-pointer items-center justify-between gap-3">
-                <span className="text-sm">
-                  Automatically start breaks
-                </span>
-                <input
-                  type="checkbox"
-                  checked={draftSettings.autoBreaks}
-                  onChange={(event) =>
-                    setDraftSettings((previous) => ({
-                      ...previous,
-                      autoBreaks: event.target.checked,
-                    }))
-                  }
-                  className="h-5 w-5 accent-amber-300"
-                />
-              </label>
-
-              <label className="flex cursor-pointer items-center justify-between gap-3">
-                <span className="text-sm">
-                  Automatically start focus sessions
-                </span>
-                <input
-                  type="checkbox"
-                  checked={draftSettings.autoFocus}
-                  onChange={(event) =>
-                    setDraftSettings((previous) => ({
-                      ...previous,
-                      autoFocus: event.target.checked,
-                    }))
-                  }
-                  className="h-5 w-5 accent-amber-300"
-                />
-              </label>
-
-              <label className="flex cursor-pointer items-center justify-between gap-3">
-                <span className="flex items-center gap-2 text-sm">
-                  {draftSettings.notifications ? (
-                    <Bell size={17} />
-                  ) : (
-                    <BellOff size={17} />
-                  )}
-                  Desktop notifications
-                </span>
-                <input
-                  type="checkbox"
-                  checked={draftSettings.notifications}
-                  onChange={(event) =>
-                    setDraftSettings((previous) => ({
-                      ...previous,
-                      notifications: event.target.checked,
-                    }))
-                  }
-                  className="h-5 w-5 accent-amber-300"
-                />
-              </label>
+            <p className="ff-timer-modal__hint">Durations in minutes (1–180)</p>
+            <div className="ff-timer-modal__options">
+              <label><span>Automatically start breaks</span><input type="checkbox" checked={draftSettings.autoBreaks}
+                onChange={(event) => setDraftSettings((previous) => ({ ...previous, autoBreaks: event.target.checked }))} /></label>
+              <label><span>Automatically start focus sessions</span><input type="checkbox" checked={draftSettings.autoFocus}
+                onChange={(event) => setDraftSettings((previous) => ({ ...previous, autoFocus: event.target.checked }))} /></label>
+              <label><span>{draftSettings.notifications ? <Bell size={17} /> : <BellOff size={17} />} Desktop notifications</span>
+                <input type="checkbox" checked={draftSettings.notifications}
+                  onChange={(event) => setDraftSettings((previous) => ({ ...previous, notifications: event.target.checked }))} /></label>
             </div>
-
             {draftSettings.notifications && (
-              <div className="mt-5 rounded-xl bg-white/5 p-3">
-                <p className="mb-2 text-xs text-slate-400">
-                  Notification permission: {notificationPermission}
-                </p>
-
+              <div className="ff-timer-modal__permission">
+                <span>Notification permission: {notificationPermission}</span>
                 {notificationPermission === "default" && (
-                  <button
-                    onClick={requestNotifications}
-                    className="flex items-center gap-2 text-sm text-amber-200 hover:underline"
-                  >
-                    <Bell size={16} />
-                    Enable browser notifications
-                  </button>
+                  <button type="button" onClick={requestNotifications}><Bell size={16} /> Enable browser notifications</button>
                 )}
               </div>
             )}
-
-            <button
-              onClick={saveSettings}
-              className="mt-7 flex w-full items-center justify-center gap-2 rounded-full bg-amber-300 py-3 font-semibold text-slate-900 transition hover:bg-amber-200"
-            >
-              <Save size={18} />
-              Save Settings
-            </button>
+            <button type="button" className="ff-timer-modal__save" onClick={saveSettings}><Save size={18} /> Save Settings</button>
           </motion.div>
-        </div>
+        </div>, document.body
       )}
-    </div>
+    </section>
   );
 }
