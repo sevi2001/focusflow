@@ -179,6 +179,15 @@ export default function StudyDashboard() {
     setCelebrating(true);
     window.setTimeout(() => setCelebrating(false), 1600);
   }
+  <button
+  type="button"
+  onClick={() => navigate("/rewards")}
+  className="dashboard-shop-button"
+>
+  <span>🎁</span>
+  Magical Rewards Shop
+  <span>✨</span>
+</button>
 
   return (
     <div className="dashboard-page">

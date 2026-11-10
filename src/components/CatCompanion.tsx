@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import "./CatCompanion.css";
+import {
+  getRewards,
+  subscribeToRewards,
+} from "../lib/rewards";
+
 import {
   Heart, Moon, Play, Sparkles, Sun, Pencil, Check, X,
   BookOpen, Utensils, PawPrint, Star, ChevronLeft, ChevronRight,
@@ -75,6 +79,25 @@ const clamp = (value: number) => Math.max(0, Math.min(100, value));
 
 export default function CatCompanion() {
   const [selected, setSelected] = useState<PetId>(loadSelected);
+  const [equippedAccessory, setEquippedAccessory] = useState<
+  string | null
+>(() => getRewards().equipped.pet);
+useEffect(() => {
+  const refreshAccessory = () => {
+    setEquippedAccessory(getRewards().equipped.pet);
+  };
+
+  refreshAccessory();
+
+  const unsubscribe = subscribeToRewards(refreshAccessory);
+
+  window.addEventListener("focus", refreshAccessory);
+
+  return () => {
+    unsubscribe();
+    window.removeEventListener("focus", refreshAccessory);
+  };
+}, []);
   const [petStates, setPetStates] = useState<PetStateMap>(loadPets);
   const [mood, setMood] = useState<Mood>("idle");
   const [message, setMessage] = useState("Your little friend is ready to study with you! ✨");
@@ -285,7 +308,42 @@ export default function CatCompanion() {
             transition={{ duration: mood === "playing" ? 1.2 : mood === "happy" ? 0.75 : 3,
               repeat: reducedMotion ? 0 : Infinity, ease: "easeInOut" }}
             whileTap={{ scale: 0.9 }}>
-            <span role="img" aria-label={pet.species}>{mood === "sleeping" ? pet.asleep : pet.emoji}</span>
+           <span className="sanctuary-pet-visual">
+  <span
+    className="sanctuary-pet-face"
+    role="img"
+    aria-label={pet.species}
+  >
+    {mood === "sleeping" ? pet.asleep : pet.emoji}
+  </span>
+
+  {equippedAccessory === "pet-pink-bow" && (
+    <span
+      className="sanctuary-pet-accessory sanctuary-accessory-bow"
+      aria-label="Pink Bow"
+    >
+      🎀
+    </span>
+  )}
+
+  {equippedAccessory === "pet-golden-crown" && (
+    <span
+      className="sanctuary-pet-accessory sanctuary-accessory-crown"
+      aria-label="Golden Crown"
+    >
+      👑
+    </span>
+  )}
+
+  {equippedAccessory === "pet-cozy-scarf" && (
+    <span
+      className="sanctuary-pet-accessory sanctuary-accessory-scarf"
+      aria-label="Cozy Scarf"
+    >
+      🧣
+    </span>
+  )}
+</span>
           </motion.button>
           <div className="sanctuary-character-shadow" />
         </div>
@@ -317,6 +375,11 @@ export default function CatCompanion() {
       <motion.button type="button" className="sanctuary-encourage" whileTap={{ scale: 0.98 }} onClick={encourage}>
         <BookOpen size={18} /> Encourage Me <Sparkles size={16} />
       </motion.button>
+      <a href="/rewards" className="sanctuary-shop-link">
+  <span>🎁</span>
+  <span>Visit Magical Rewards Shop</span>
+  <Sparkles size={17} />
+</a>
 
       <div className="sanctuary-collection-header">
         <div><span className="sanctuary-eyebrow">CHOOSE YOUR COMPANION</span><h3>Meet the little friends <span>🐾</span></h3></div>

@@ -2,7 +2,7 @@
 import { lazy, Suspense } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Route, Routes, useLocation } from "react-router-dom";
-
+import RewardsShop from "./components/RewardsShop";
 import PageLoader from "./components/PageLoader";
 
 const Home = lazy(() => import("./pages/Home"));
@@ -30,6 +30,7 @@ export default function App() {
         <Suspense fallback={<PageLoader />}>
           <Routes location={location}>
             <Route path="/" element={<Home />} />
+            <Route path="/rewards" element={<RewardsShop />} />
             <Route
               path="/study-room"
               element={<StudyRoom />}
