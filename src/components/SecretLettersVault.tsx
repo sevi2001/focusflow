@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { motion } from "motion/react";
-import { Download, Heart, KeyRound, LockKeyhole, UnlockKeyhole, Upload } from "lucide-react";
+import { Download, Heart, KeyRound, LockKeyhole, UnlockKeyhole, Upload, Eye, EyeOff, ChevronDown, ShieldCheck, FileHeart } from "lucide-react";
 import MyLittleNotes from "./MyLittleNotes";
 import type { LittleNote } from "../lib/littleNotes";
 import {
@@ -27,6 +27,9 @@ export default function SecretLettersVault() {
   const [restorePassword, setRestorePassword] = useState("");
   const [restoring, setRestoring] = useState(false);
   const [backupStatus, setBackupStatus] = useState("");
+  const [showRestore, setShowRestore] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showRestorePassword, setShowRestorePassword] = useState(false);
 
   const downloadBackup = () => {
     try {
@@ -187,62 +190,181 @@ export default function SecretLettersVault() {
   return (
     <section className="secret-vault" aria-label="Private postcard vault">
       {!session ? (
-        <motion.div className="secret-vault-panel" initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}>
-          <div className="secret-vault-illustration">💌<span>🔐</span></div>
-          <span className="secret-vault-kicker">YOUR PRIVATE LITTLE CORNER</span>
-          <h2>Secret Letters</h2>
+        <motion.div
+          className="secret-vault-panel"
+          initial={{ opacity: 0, y: 22, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="secret-vault-sparkle secret-vault-sparkle-one" aria-hidden="true">✦</div>
+          <div className="secret-vault-sparkle secret-vault-sparkle-two" aria-hidden="true">✧</div>
+          <div className="secret-vault-sparkle secret-vault-sparkle-three" aria-hidden="true">♡</div>
+
+          <motion.div
+            className="secret-vault-illustration"
+            animate={{ y: [0, -7, 0], rotate: [-2, 2, -2] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            aria-hidden="true"
+          >
+            <span className="secret-vault-envelope">💌</span>
+            <span className="secret-vault-lock">🔐</span>
+          </motion.div>
+          <span className="secret-vault-kicker">✦ YOUR PRIVATE LITTLE CORNER ✦</span>
+          <h2>Secret Letters <span aria-hidden="true">♡</span></h2>
           <p className="secret-vault-description">
-            {exists ? "Your thoughts are safe behind a little golden lock. Enter your password to read them."
-              : "Create a secret password for your own encrypted postcard diary."}
+            {exists
+              ? "Your sweetest thoughts are tucked away behind a little golden lock. Enter your password to visit your private garden."
+              : "A tiny, safe place for your memories. Create a password to begin your encrypted postcard diary."}
           </p>
+
           {!exists && legacyExists() && (
-            <p className="secret-vault-warning">Existing postcards detected. Back them up first; creating the vault will encrypt and migrate them.</p>
+            <p className="secret-vault-warning" role="status">
+              Existing postcards detected. Creating your vault will encrypt and migrate them.
+            </p>
           )}
-          <div className="secret-vault-backup" style={{ margin: "20px 0", padding: 16, border: "1px solid rgba(255,255,255,.2)", borderRadius: 14 }}>
-            <h3 style={{ marginTop: 0 }}>💌 Restore encrypted postcards</h3>
-            <p>Choose the backup exported from localhost, then enter the password used there. Importing replaces any vault already saved on this website.</p>
-            <input type="file" accept=".json,application/json" aria-label="Choose encrypted postcard backup"
-              onChange={e => setRestoreFile(e.target.files?.[0] ?? null)} />
-            <label htmlFor="restore-vault-password" style={{ display: "block", marginTop: 12 }}>Original vault password</label>
-            <input id="restore-vault-password" type="password" autoComplete="off"
-              value={restorePassword} onChange={e => setRestorePassword(e.target.value)} />
-            <button type="button" onClick={importBackup} disabled={!restoreFile || !restorePassword || restoring}
-              style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 12 }}>
-              <Upload size={17} /> {restoring ? "Verifying backup..." : "Restore encrypted backup"}
-            </button>
-          </div>
-          {backupStatus && <p className="secret-vault-warning" role="status">{backupStatus}</p>}
+
           <form className="secret-vault-form" onSubmit={submit}>
-            <label htmlFor="vault-password">{exists ? "Your secret password" : "Create a password (12+ characters)"}</label>
-            <input id="vault-password" type="password" autoComplete={exists ? "current-password" : "new-password"}
-              minLength={exists ? undefined : 12} required value={password}
-              onChange={e => setPassword(e.target.value)} placeholder="Your secret password" />
-            {!exists && <>
-              <label htmlFor="vault-confirm">Confirm password</label>
-              <input id="vault-confirm" type="password" autoComplete="new-password" minLength={12} required
-                value={confirm} onChange={e => setConfirm(e.target.value)} placeholder="Type your password again" />
-            </>}
-            <button type="submit" disabled={busy}>
-              {exists ? <UnlockKeyhole size={17} /> : <KeyRound size={17} />}
-              {busy ? "Please wait..." : exists ? "Unlock My Diary" : "Create My Secret Vault"}
+            <label htmlFor="vault-password">
+              {exists ? "Your secret password" : "Create a password (12+ characters)"}
+            </label>
+            <div className="secret-vault-password-wrap">
+              <KeyRound size={18} aria-hidden="true" />
+              <input
+                id="vault-password"
+                type={showPassword ? "text" : "password"}
+                autoComplete={exists ? "current-password" : "new-password"}
+                minLength={exists ? undefined : 12}
+                required
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="Enter your secret password"
+              />
+              <button
+                className="secret-vault-eye"
+                type="button"
+                onClick={() => setShowPassword(value => !value)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+            {!exists && (
+              <>
+                <label htmlFor="vault-confirm">Confirm password</label>
+                <div className="secret-vault-password-wrap">
+                  <KeyRound size={18} aria-hidden="true" />
+                  <input
+                    id="vault-confirm"
+                    type="password"
+                    autoComplete="new-password"
+                    minLength={12}
+                    required
+                    value={confirm}
+                    onChange={e => setConfirm(e.target.value)}
+                    placeholder="Type your password again"
+                  />
+                </div>
+              </>
+            )}
+            <button className="secret-vault-primary" type="submit" disabled={busy}>
+              {exists ? <UnlockKeyhole size={18} /> : <KeyRound size={18} />}
+              {busy ? "Opening your diary..." : exists ? "Unlock My Diary" : "Create My Secret Vault"}
             </button>
           </form>
+
           {error && <p className="secret-vault-error" role="alert">{error}</p>}
           {notice && <p className="secret-vault-warning" role="status">{notice}</p>}
-          <p className="secret-vault-footnote">🔒 Encrypted in this browser. No account or cross-device sync. Forgotten passwords cannot be recovered.</p>
+          {backupStatus && <p className="secret-vault-success" role="status">{backupStatus}</p>}
+
+          <div className="secret-vault-divider"><span>✦ a little extra magic ✦</span></div>
+          <div className="secret-vault-restore">
+            <button
+              className="secret-vault-restore-toggle"
+              type="button"
+              onClick={() => setShowRestore(value => !value)}
+              aria-expanded={showRestore}
+              aria-controls="secret-vault-restore-panel"
+            >
+              <span className="secret-vault-restore-icon"><FileHeart size={20} /></span>
+              <span className="secret-vault-restore-title">
+                <strong>Restore My Postcards</strong>
+                <small>Bring your encrypted memories back 💌</small>
+              </span>
+              <ChevronDown className={showRestore ? "is-open" : ""} size={20} />
+            </button>
+            {showRestore && (
+              <motion.div
+                id="secret-vault-restore-panel"
+                className="secret-vault-restore-body"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+              >
+                <p>Choose the encrypted backup exported from localhost, then enter its original password. Restoring replaces any existing vault in this browser.</p>
+                <label htmlFor="secret-vault-backup-file">Encrypted backup file</label>
+                <input
+                  id="secret-vault-backup-file"
+                  className="secret-vault-file"
+                  type="file"
+                  accept=".json,application/json"
+                  onChange={e => setRestoreFile(e.target.files?.[0] ?? null)}
+                />
+                <label htmlFor="restore-vault-password">Original vault password</label>
+                <div className="secret-vault-password-wrap">
+                  <KeyRound size={18} aria-hidden="true" />
+                  <input
+                    id="restore-vault-password"
+                    type={showRestorePassword ? "text" : "password"}
+                    autoComplete="off"
+                    value={restorePassword}
+                    onChange={e => setRestorePassword(e.target.value)}
+                    placeholder="Password from your localhost diary"
+                  />
+                  <button
+                    className="secret-vault-eye"
+                    type="button"
+                    onClick={() => setShowRestorePassword(value => !value)}
+                    aria-label={showRestorePassword ? "Hide restore password" : "Show restore password"}
+                  >
+                    {showRestorePassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+                <button
+                  className="secret-vault-restore-button"
+                  type="button"
+                  onClick={importBackup}
+                  disabled={!restoreFile || !restorePassword || restoring}
+                >
+                  <Upload size={17} />
+                  {restoring ? "Verifying encrypted backup..." : "Restore Encrypted Backup"}
+                </button>
+              </motion.div>
+            )}
+          </div>
+
+          <p className="secret-vault-footnote">
+            <ShieldCheck size={16} aria-hidden="true" />
+            Encrypted in this browser. No automatic sync. Keep your password and backup safe.
+          </p>
         </motion.div>
       ) : (
-        <div>
+        <div className="secret-vault-opened">
           <div className="secret-vault-unlocked">
-            <div><span>✦ PRIVATE GARDEN ✦</span><h2><Heart size={22} /> My Secret Letters</h2>
-              <p>Unlocked on this device · Automatically locks after 5 minutes of inactivity</p></div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-              <button type="button" onClick={downloadBackup}><Download size={17} /> Export Encrypted Backup</button>
-              <button type="button" onClick={lock}><LockKeyhole size={17} /> Lock My Diary</button>
+            <div>
+              <span className="secret-vault-kicker">✦ PRIVATE GARDEN ✦</span>
+              <h2><Heart size={24} /> My Secret Letters</h2>
+              <p>Your private diary is unlocked. It automatically locks after 5 minutes of inactivity.</p>
+            </div>
+            <div className="secret-vault-unlocked-actions">
+              <button className="secret-vault-export-button" type="button" onClick={downloadBackup}>
+                <Download size={17} /> Export Encrypted Backup
+              </button>
+              <button className="secret-vault-lock-button" type="button" onClick={lock}>
+                <LockKeyhole size={17} /> Lock My Diary
+              </button>
             </div>
           </div>
           {error && <p className="secret-vault-error" role="alert">{error}</p>}
-          {backupStatus && <p className="secret-vault-warning" role="status">{backupStatus}</p>}
+          {backupStatus && <p className="secret-vault-success" role="status">{backupStatus}</p>}
           <MyLittleNotes key={revision} initialNotes={session.notes} onPersist={persist} />
         </div>
       )}
