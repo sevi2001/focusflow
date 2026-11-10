@@ -1,5 +1,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { recordFocusSession } from "../lib/studyStats";
 import { motion } from "motion/react";
 import {
   Play,
@@ -202,8 +203,11 @@ export default function PomodoroTimer() {
       };
 
       completed = nextStats.completedSessions;
-      statsRef.current = nextStats;
-      setStats(nextStats);
+statsRef.current = nextStats;
+setStats(nextStats);
+
+// Save this completed focus session to the dashboard history.
+recordFocusSession(currentSettings.focus);
 
       setMessage("Amazing work! Focus session completed. 🎉");
       showNotification(

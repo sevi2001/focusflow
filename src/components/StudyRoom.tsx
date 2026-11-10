@@ -3,7 +3,8 @@ import { useCallback, useMemo, useState } from "react";
 import { motion } from "motion/react";
 import { useNavigate } from "react-router-dom";
 import DailyTaskPlanner from "./DailyTaskPlanner";
-
+import CatCompanion from "./CatCompanion";
+import { LayoutDashboard } from "lucide-react";
 import {
   ArrowLeft,
   CloudRain,
@@ -59,6 +60,13 @@ export default function StudyRoom() {
           <ArrowLeft size={18} />
           Back Home
         </button>
+        <button
+  onClick={() => navigate("/dashboard")}
+  className="flex items-center gap-2 rounded-full border border-amber-300/30 bg-amber-300/10 px-4 py-2 text-sm font-medium text-amber-200 transition hover:bg-amber-300/20"
+>
+  <LayoutDashboard size={18} />
+  Dashboard
+</button>
 
         {/* Logo */}
         <div className="flex items-center gap-2 text-xl font-bold">
@@ -184,22 +192,14 @@ export default function StudyRoom() {
             </div>
 
             {/* ================= ANIMATED CAT ================= */}
-            <motion.div
-              className="study-cat"
-              animate={{
-                y: [0, -5, 0],
-                rotate: [0, 2, 0],
-              }}
-              transition={{
-                duration: 4,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-              role="img"
-              aria-label="A cozy cat companion"
-            >
-              🐈
-            </motion.div>
+            {/* Cat companion decoration */}
+<div
+  className="study-cat"
+  role="img"
+  aria-label="Mochi's cozy spot"
+>
+  🐾
+</div>
 
             {/* Room Label */}
             <div className="scene-label">
@@ -285,29 +285,30 @@ export default function StudyRoom() {
 
         {/* ================= RIGHT SIDEBAR ================= */}
         <aside className="flex min-w-0 flex-col gap-5">
+  {/* Pomodoro Timer */}
+  <PomodoroTimer />
 
-          {/* Advanced Pomodoro Timer */}
-          <PomodoroTimer />
+  {/* Interactive Cat Companion */}
+  <CatCompanion />
 
-          {/* Ambient Sound Mixer */}
-          <AmbientSounds
-            isPlaying={soundEnabled}
-            onPlayingChange={handleSoundChange}
-          />
+  {/* Ambient Sounds */}
+  <AmbientSounds
+    isPlaying={soundEnabled}
+    onPlayingChange={handleSoundChange}
+  />
 
-          {/* Motivation Card */}
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-            <h3 className="mb-3 text-lg font-semibold text-amber-200">
-              ☕ A little reminder
-            </h3>
+  {/* Motivation Card */}
+  <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+    <h3 className="mb-3 text-lg font-semibold text-amber-200">
+      ☕ A little reminder
+    </h3>
 
-            <p className="leading-7 text-slate-300">
-              Progress doesn't have to be perfect.
-              One focused session at a time is enough.
-            </p>
-          </div>
-
-        </aside>
+    <p className="leading-7 text-slate-300">
+      Progress doesn't have to be perfect.
+      One focused session at a time is enough.
+    </p>
+  </div>
+</aside>
       </main>
     </div>
   );
