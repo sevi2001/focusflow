@@ -2,6 +2,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { motion } from "motion/react";
 import { useNavigate } from "react-router-dom";
+import DailyTaskPlanner from "./DailyTaskPlanner";
 
 import {
   ArrowLeft,
@@ -264,7 +265,10 @@ export default function StudyRoom() {
                 size={21}
                 className="text-amber-300"
               />
-
+{/* ================= DAILY TASK PLANNER ================= */}
+<div className="mt-8">
+  <DailyTaskPlanner />
+</div>
               <div>
                 <h3 className="font-semibold text-white">
                   Your Cozy Study Space
