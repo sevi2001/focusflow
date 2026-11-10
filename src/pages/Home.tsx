@@ -1,362 +1,645 @@
 
-import { motion } from "motion/react";
+import { useMemo, useState } from "react";
+import { motion, useReducedMotion } from "motion/react";
 import { useNavigate } from "react-router-dom";
+
 import {
   ArrowRight,
+  BarChart3,
   BookOpen,
-  CloudRain,
-  Coffee,
-  Moon,
-  Sparkles,
-  Timer,
   CheckCircle2,
+  CloudRain,
   Headphones,
   Heart,
+  Lightbulb,
+  Moon,
+  Play,
+  Sparkles,
+  Star,
+  Target,
+  Timer,
+  TrendingUp,
+  Zap,
 } from "lucide-react";
+
+import "./Home.css";
 
 const features = [
   {
     icon: Timer,
-    title: "Focus Timer",
+    title: "Smart Focus Timer",
     description:
-      "Stay productive with relaxing Pomodoro sessions and mindful breaks.",
-    color: "text-amber-300",
-    bg: "bg-amber-300/10",
-  },
-  {
-    icon: CloudRain,
-    title: "Cozy Study Rooms",
-    description:
-      "Escape into peaceful rainy nights, warm cafés, and dreamy study spaces.",
-    color: "text-sky-300",
-    bg: "bg-sky-300/10",
-  },
-  {
-    icon: BookOpen,
-    title: "Daily Planner",
-    description:
-      "Organize your tasks, set goals, and celebrate every little achievement.",
-    color: "text-purple-300",
-    bg: "bg-purple-300/10",
+      "Stay in your flow with customizable Pomodoro sessions and gentle breaks.",
+    tone: "gold",
   },
   {
     icon: Headphones,
-    title: "Ambient Sounds",
+    title: "Ambient Sound Studio",
     description:
-      "Relax with gentle rain, soft café sounds, and calming background audio.",
-    color: "text-pink-300",
-    bg: "bg-pink-300/10",
-  },
-  {
-    icon: CheckCircle2,
-    title: "Progress Tracking",
-    description:
-      "Track your study hours, daily streaks, and completed focus sessions.",
-    color: "text-emerald-300",
-    bg: "bg-emerald-300/10",
+      "Create your perfect atmosphere with rain, café, and fireplace sounds.",
+    tone: "blue",
   },
   {
     icon: Heart,
-    title: "Study Companion",
+    title: "Meet Mochi",
     description:
-      "Meet your adorable virtual companion who keeps you company while studying.",
-    color: "text-rose-300",
-    bg: "bg-rose-300/10",
+      "Your adorable animated cat companion brings joy to every study session.",
+    tone: "pink",
   },
-];
+  {
+    icon: CheckCircle2,
+    title: "Daily Task Planner",
+    description:
+      "Organize your goals, track progress, and celebrate little victories.",
+    tone: "green",
+  },
+  {
+    icon: BarChart3,
+    title: "Focus Analytics",
+    description:
+      "Explore animated charts, study streaks, daily goals, and focus history.",
+    tone: "purple",
+  },
+  {
+    icon: BookOpen,
+    title: "Your Study Sanctuary",
+    description:
+      "An immersive anime-inspired space designed for peaceful productivity.",
+    tone: "gold",
+  },
+] as const;
 
 export default function Home() {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
+  const reducedMotion = useReducedMotion();
+
+  const [rainOn, setRainOn] = useState(true);
+  const [lampOn, setLampOn] = useState(true);
+
+  const stars = useMemo(
+    () =>
+      Array.from({ length: 48 }, (_, i) => ({
+        id: i,
+        left: `${(i * 37.17 + 8) % 100}%`,
+        top: `${(i * 23.41 + 6) % 100}%`,
+        delay: `${(i * 0.37) % 5}s`,
+        size: `${1 + (i % 3)}px`,
+      })),
+    []
+  );
+
+  const particles = useMemo(
+    () =>
+      Array.from({ length: 14 }, (_, i) => ({
+        id: i,
+        left: `${(i * 17.73 + 12) % 100}%`,
+        top: `${(i * 31.11 + 10) % 95}%`,
+        delay: `${(i * 0.53) % 6}s`,
+      })),
+    []
+  );
+
+  const raindrops = useMemo(
+    () =>
+      Array.from({ length: 36 }, (_, i) => ({
+        id: i,
+        left: `${(i * 29.13) % 100}%`,
+        delay: `${(i * 0.17) % 2}s`,
+        duration: `${0.8 + (i % 4) * 0.2}s`,
+      })),
+    []
+  );
+
+  const openRoom = () => navigate("/study-room");
+  const openDashboard = () => navigate("/dashboard");
+
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#0c1020] text-white">
+    <div className="premium-home">
+      {/* Animated atmosphere */}
+      <div className="premium-atmosphere" aria-hidden="true">
+        <div className="premium-aurora premium-aurora-one" />
+        <div className="premium-aurora premium-aurora-two" />
 
-      {/* Background glowing effects */}
-      <div className="pointer-events-none absolute left-[-150px] top-20 h-[450px] w-[450px] rounded-full bg-purple-600/20 blur-[130px]" />
-      <div className="pointer-events-none absolute right-[-100px] top-[350px] h-[400px] w-[400px] rounded-full bg-amber-400/10 blur-[130px]" />
-
-      {/* Animated Stars */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        {Array.from({ length: 35 }).map((_, i) => (
-          <motion.span
-            key={i}
-            className="absolute h-[2px] w-[2px] rounded-full bg-white"
+        {stars.map((star) => (
+          <span
+            key={star.id}
+            className="premium-star"
             style={{
-              left: `${(i * 37) % 100}%`,
-              top: `${(i * 19) % 80}%`,
+              left: star.left,
+              top: star.top,
+              width: star.size,
+              height: star.size,
+              animationDelay: star.delay,
             }}
-            animate={{
-              opacity: [0.15, 0.9, 0.15],
-              scale: [1, 1.8, 1],
-            }}
-            transition={{
-              duration: 2 + (i % 4),
-              repeat: Infinity,
-              delay: (i % 5) * 0.5,
+          />
+        ))}
+
+        {particles.map((particle) => (
+          <span
+            key={particle.id}
+            className="premium-particle"
+            style={{
+              left: particle.left,
+              top: particle.top,
+              animationDelay: particle.delay,
             }}
           />
         ))}
       </div>
 
-      {/* Navigation */}
-      <nav className="relative z-10 mx-auto flex max-w-7xl items-center justify-between px-6 py-6">
-        <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-300 text-slate-900">
-            <Coffee size={23} />
-          </div>
-          <span className="text-2xl font-bold tracking-tight">
-            Focus<span className="text-amber-300">Flow</span>
+      {/* Navbar */}
+      <header className="premium-navbar">
+        <button
+          type="button"
+          className="premium-brand"
+          onClick={() => navigate("/")}
+          aria-label="FocusFlow home"
+        >
+          <span className="premium-brand-icon">
+            <Moon size={23} />
           </span>
-        </div>
 
-        <div className="hidden items-center gap-8 text-sm text-slate-300 md:flex">
-          <a href="#features" className="transition hover:text-amber-300">
-            Features
-          </a>
-          <a href="#about" className="transition hover:text-amber-300">
-            About
-          </a>
-        </div>
+          <span>
+            Focus<span>Flow</span>
+          </span>
+        </button>
+
+        <nav
+          className="premium-nav-links"
+          aria-label="Main navigation"
+        >
+          <a href="#features">Features</a>
+          <a href="#experience">Experience</a>
+
+          <button
+            type="button"
+            onClick={openDashboard}
+          >
+            Dashboard
+          </button>
+        </nav>
 
         <button
-  onClick={() => navigate("/study-room")}
-  className="rounded-full border border-amber-300/40 px-5 py-2.5 text-sm font-medium text-amber-200 transition hover:bg-amber-300/10"
->
-  Get Started
-</button>
-      </nav>
-
-      {/* Hero Section */}
-      <section className="relative z-10 mx-auto flex max-w-7xl flex-col items-center gap-14 px-6 pb-24 pt-20 lg:flex-row lg:pt-28">
-
-        {/* Left Content */}
-        <div className="flex-1 text-center lg:text-left">
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="mb-7 inline-flex items-center gap-2 rounded-full border border-amber-300/20 bg-amber-300/10 px-4 py-2 text-sm text-amber-200"
-          >
-            <Sparkles size={16} />
-            Your little corner of calm
-          </motion.div>
-
-          <motion.h1
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.15 }}
-            className="text-5xl font-bold leading-[1.15] tracking-tight md:text-7xl"
-          >
-            Study better.
-            <br />
-            <span className="bg-gradient-to-r from-amber-200 via-orange-300 to-pink-300 bg-clip-text text-transparent">
-              Feel calmer.
-            </span>
-            <br />
-            Dream bigger.
-          </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="mx-auto mt-7 max-w-xl text-lg leading-8 text-slate-300 lg:mx-0"
-          >
-            Welcome to your cozy virtual study space.
-            Focus with peaceful timers, relaxing sounds,
-            beautiful study rooms, and a little companion
-            cheering you on.
-          </motion.p>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-            className="mt-9 flex flex-wrap justify-center gap-4 lg:justify-start"
-          >
-            <motion.button
-  onClick={() => navigate("/study-room")}
-  whileHover={{ scale: 1.06 }}
-  whileTap={{ scale: 0.95 }}
-  className="flex items-center gap-3 rounded-full bg-amber-300 px-8 py-4 font-semibold text-slate-900 shadow-lg shadow-amber-300/20"
->
-  Enter Study Room
-  <ArrowRight size={20} />
-</motion.button>
-            <a
-              href="#features"
-              className="rounded-full border border-white/20 px-8 py-4 font-medium text-white transition hover:bg-white/10"
-            >
-              Explore Features
-            </a>
-          </motion.div>
-
-          <div className="mt-10 flex items-center justify-center gap-3 text-sm text-slate-400 lg:justify-start">
-            <Moon size={17} className="text-amber-200" />
-            Make every study moment peaceful.
-          </div>
-        </div>
-
-        {/* Right Visual */}
-        <motion.div
-          initial={{ opacity: 0, x: 50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 1, delay: 0.3 }}
-          className="relative flex-1"
+          type="button"
+          className="premium-nav-cta"
+          onClick={openRoom}
         >
+          Launch App
+          <ArrowRight size={16} />
+        </button>
+      </header>
+
+      <main>
+        {/* Hero */}
+        <section className="premium-hero">
           <motion.div
-            animate={{ y: [0, -12, 0] }}
-            transition={{
-              duration: 6,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-            className="relative mx-auto max-w-xl"
+            className="premium-hero-copy"
+            initial={
+              reducedMotion
+                ? false
+                : { opacity: 0, y: 30 }
+            }
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
           >
-            <div className="absolute -inset-5 rounded-[40px] bg-gradient-to-r from-purple-500/20 to-amber-300/20 blur-3xl" />
+            <div className="premium-eyebrow">
+              <Sparkles size={15} />
+              THE COZIEST WAY TO STAY PRODUCTIVE
+              <span>✦</span>
+            </div>
 
-            <div className="relative overflow-hidden rounded-[32px] border border-white/15 bg-[#1d2138] p-4 shadow-2xl">
-              <div className="relative flex aspect-[5/4] items-center justify-center overflow-hidden rounded-[24px] bg-gradient-to-b from-[#283456] via-[#4c3e65] to-[#9c6671]">
+            <h1>
+              Focus Better.
+              <br />
+              Dream Bigger.
+              <br />
+              <span>Study Beautifully.</span>
+            </h1>
 
-                {/* Moon */}
-                <div className="absolute right-12 top-10 h-20 w-20 rounded-full bg-amber-100 shadow-[0_0_70px_25px_rgba(255,222,160,0.3)]" />
+            <p className="premium-hero-description">
+              Step into your own peaceful anime-inspired
+              study world. Stay focused with smart tools,
+              relaxing sounds, gentle animations, and
+              your adorable companion Mochi.
+            </p>
 
-                {/* Window */}
-                <div className="absolute left-[12%] top-[10%] h-[60%] w-[48%] rounded-t-[70px] border-[10px] border-[#493448] bg-gradient-to-b from-[#172342] to-[#69577c] shadow-xl">
-                  <div className="absolute left-1/2 top-0 h-full w-2 -translate-x-1/2 bg-[#493448]" />
-                  <div className="absolute left-0 top-1/2 h-2 w-full bg-[#493448]" />
+            <div className="premium-hero-actions">
+              <motion.button
+                type="button"
+                className="premium-primary-button"
+                onClick={openRoom}
+                whileHover={
+                  reducedMotion
+                    ? undefined
+                    : { y: -4, scale: 1.03 }
+                }
+                whileTap={{ scale: 0.97 }}
+              >
+                <Play size={17} fill="currentColor" />
+                Start Focusing
+                <ArrowRight size={18} />
+              </motion.button>
 
-                  {Array.from({ length: 16 }).map((_, i) => (
-                    <motion.div
-                      key={i}
-                      className="absolute h-6 w-[2px] rounded-full bg-blue-200/40"
-                      style={{
-                        left: `${(i * 29) % 95}%`,
-                        top: `${(i * 17) % 85}%`,
-                      }}
-                      animate={{ y: [0, 40], opacity: [0, 0.8, 0] }}
-                      transition={{
-                        duration: 1.5 + (i % 3) * 0.4,
-                        repeat: Infinity,
-                        delay: (i % 5) * 0.3,
-                      }}
-                    />
-                  ))}
+              <button
+                type="button"
+                className="premium-outline-button"
+                onClick={openDashboard}
+              >
+                <BarChart3 size={18} />
+                View Dashboard
+              </button>
+            </div>
+
+            <div className="premium-hero-perks">
+              <span>
+                <CheckCircle2 size={15} />
+                Free to use
+              </span>
+
+              <span>
+                <Sparkles size={15} />
+                Immersive animations
+              </span>
+
+              <span>
+                <Heart size={15} />
+                Made for focus
+              </span>
+            </div>
+          </motion.div>
+
+          {/* Hero preview */}
+          <motion.div
+            className="premium-preview-shell"
+            initial={
+              reducedMotion
+                ? false
+                : { opacity: 0, y: 35, scale: 0.94 }
+            }
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{
+              duration: 0.9,
+              delay: 0.15,
+            }}
+          >
+            <div className="premium-preview-glow" />
+
+            <div className="premium-preview-card">
+              <div className="premium-preview-toolbar">
+                <div className="premium-window-dots">
+                  <span />
+                  <span />
+                  <span />
                 </div>
 
-                {/* Desk */}
-                <div className="absolute bottom-0 h-[28%] w-full bg-gradient-to-b from-[#754c43] to-[#3b2732]" />
+                <span className="premium-preview-title">
+                  <Moon size={14} />
+                  Your Cozy Study Room
+                </span>
 
-                {/* Laptop */}
-                <div className="absolute bottom-[18%] left-[32%] h-[24%] w-[37%] rounded-lg border-[7px] border-[#28283e] bg-gradient-to-br from-[#7187b4] to-[#2b365b] shadow-xl">
-                  <div className="flex h-full items-center justify-center">
-                    <Coffee className="text-amber-200/70" size={32} />
+                <span className="premium-preview-live">
+                  <span />
+                  LIVE PREVIEW
+                </span>
+              </div>
+
+              <div className="premium-room-scene">
+                <div className="premium-room-glow" />
+
+                <div className="premium-room-window">
+                  <div className="premium-room-sky">
+                    <div className="premium-room-moon" />
+
+                    <span className="premium-room-star rs1">
+                      ✦
+                    </span>
+                    <span className="premium-room-star rs2">
+                      ✧
+                    </span>
+                    <span className="premium-room-star rs3">
+                      ✦
+                    </span>
+
+                    {rainOn && (
+                      <div className="premium-room-rain">
+                        {raindrops.map((drop) => (
+                          <span
+                            key={drop.id}
+                            className="premium-raindrop"
+                            style={{
+                              left: drop.left,
+                              animationDelay: drop.delay,
+                              animationDuration: drop.duration,
+                            }}
+                          />
+                        ))}
+                      </div>
+                    )}
                   </div>
+
+                  <div className="premium-window-v" />
+                  <div className="premium-window-h" />
                 </div>
 
-                {/* Desk Lamp */}
-                <div className="absolute bottom-[25%] right-[12%] h-20 w-20 rounded-full bg-amber-200/30 blur-2xl" />
-                <div className="absolute bottom-[18%] right-[17%] h-[30%] w-2 rotate-[-15deg] rounded-full bg-[#d7b2a0]" />
-                <div className="absolute bottom-[43%] right-[13%] h-12 w-20 rounded-t-full rounded-b-lg bg-amber-200 shadow-[0_12px_45px_rgba(255,210,120,0.55)]" />
-
-                {/* Decorative Cat */}
-                <div className="absolute bottom-[17%] left-[12%] text-6xl">
-                  🐈
+                <div className="premium-room-shelf">
+                  <div className="premium-shelf-items">
+                    <span>📚</span>
+                    <span>🪴</span>
+                    <span>🕯️</span>
+                  </div>
+                  <div className="premium-shelf-board" />
                 </div>
 
-                <div className="absolute bottom-5 left-5 rounded-full border border-white/20 bg-black/30 px-4 py-2 text-xs text-white backdrop-blur-md">
-                  🌧️ Rainy Night Room
+                <div className="premium-room-poster">
+                  ✨
+                </div>
+
+                <div className="premium-room-desk">
+                  <div className="premium-desk-top" />
+                  <div className="premium-desk-front" />
+                  <div className="premium-desk-leg left" />
+                  <div className="premium-desk-leg right" />
+                </div>
+
+                <div className="premium-room-laptop">
+                  <div className="premium-laptop-screen">
+                    <Moon size={25} />
+                    <span>Focus Mode</span>
+                  </div>
+                  <div className="premium-laptop-base" />
+                </div>
+
+                <div
+                  className={`premium-room-lamp ${
+                    lampOn ? "premium-lamp-active" : ""
+                  }`}
+                >
+                  <div className="premium-lamp-glow" />
+                  <div className="premium-lamp-shade" />
+                  <div className="premium-lamp-stem" />
+                  <div className="premium-lamp-base" />
+                </div>
+
+                <div className="premium-room-cat">🐈</div>
+                <div className="premium-room-mug">☕</div>
+
+                <div className="premium-room-floor" />
+              </div>
+
+              <div className="premium-preview-footer">
+                <div className="premium-preview-status">
+                  <CloudRain size={17} />
+                  Cozy Rainy Night
+                </div>
+
+                <div className="premium-preview-controls">
+                  <button
+                    type="button"
+                    className={rainOn ? "active" : ""}
+                    aria-label={
+                      rainOn
+                        ? "Turn preview rain off"
+                        : "Turn preview rain on"
+                    }
+                    aria-pressed={rainOn}
+                    onClick={() => setRainOn((v) => !v)}
+                  >
+                    <CloudRain size={17} />
+                  </button>
+
+                  <button
+                    type="button"
+                    className={lampOn ? "active" : ""}
+                    aria-label={
+                      lampOn
+                        ? "Turn preview lamp off"
+                        : "Turn preview lamp on"
+                    }
+                    aria-pressed={lampOn}
+                    onClick={() => setLampOn((v) => !v)}
+                  >
+                    <Lightbulb size={17} />
+                  </button>
                 </div>
               </div>
             </div>
+
+            <motion.div
+              className="premium-floating-card premium-floating-focus"
+              animate={
+                reducedMotion
+                  ? undefined
+                  : { y: [0, -9, 0] }
+              }
+              transition={{
+                duration: 4,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            >
+              <span className="premium-floating-icon">
+                <Timer size={20} />
+              </span>
+
+              <div>
+                <strong>Focus Mode</strong>
+                <small>One session at a time</small>
+              </div>
+            </motion.div>
+
+            <motion.div
+              className="premium-floating-card premium-floating-mochi"
+              animate={
+                reducedMotion
+                  ? undefined
+                  : { y: [0, 8, 0] }
+              }
+              transition={{
+                duration: 4.5,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            >
+              <span className="premium-floating-cat">😺</span>
+              <div>
+                <strong>Mochi says...</strong>
+                <small>You got this! ♡</small>
+              </div>
+            </motion.div>
           </motion.div>
-        </motion.div>
-      </section>
+        </section>
 
-      {/* Features */}
-      <section
-        id="features"
-        className="relative z-10 mx-auto max-w-7xl px-6 py-24"
-      >
-        <div className="mb-14 text-center">
-          <p className="mb-3 text-sm font-semibold uppercase tracking-[0.3em] text-amber-300">
-            Everything you need
-          </p>
-          <h2 className="text-4xl font-bold md:text-5xl">
-            Your perfect study companion
-          </h2>
-          <p className="mx-auto mt-5 max-w-2xl text-slate-400">
-            A peaceful space designed to help you stay focused,
-            motivated, and inspired every day.
-          </p>
-        </div>
+        {/* Product highlights */}
+        <section className="premium-highlights">
+          <div>
+            <span className="premium-highlight-icon">
+              <Zap size={19} />
+            </span>
+            <strong>Stay Focused</strong>
+            <small>Pomodoro sessions</small>
+          </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {features.map((feature, index) => {
-            const Icon = feature.icon;
+          <div>
+            <span className="premium-highlight-icon">
+              <Headphones size={19} />
+            </span>
+            <strong>Feel Relaxed</strong>
+            <small>Ambient soundscapes</small>
+          </div>
 
-            return (
-              <motion.div
-                key={feature.title}
-                initial={{ opacity: 0, y: 35 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.08 }}
-                whileHover={{ y: -8 }}
-                className="group rounded-3xl border border-white/10 bg-white/[0.04] p-8 backdrop-blur-lg transition-colors hover:border-amber-300/20 hover:bg-white/[0.07]"
-              >
-                <div
-                  className={`mb-6 flex h-14 w-14 items-center justify-center rounded-2xl ${feature.bg} ${feature.color}`}
-                >
-                  <Icon size={26} />
-                </div>
+          <div>
+            <span className="premium-highlight-icon">
+              <Target size={19} />
+            </span>
+            <strong>Reach Goals</strong>
+            <small>Daily progress tracking</small>
+          </div>
 
-                <h3 className="mb-3 text-xl font-semibold">
-                  {feature.title}
-                </h3>
+          <div>
+            <span className="premium-highlight-icon">
+              <TrendingUp size={19} />
+            </span>
+            <strong>Grow Daily</strong>
+            <small>Study analytics</small>
+          </div>
+        </section>
 
-                <p className="leading-7 text-slate-400">
-                  {feature.description}
-                </p>
-              </motion.div>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* About */}
-      <section
-        id="about"
-        className="relative z-10 mx-auto max-w-5xl px-6 py-24 text-center"
-      >
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="rounded-[40px] border border-amber-300/15 bg-gradient-to-br from-purple-500/10 to-amber-300/10 px-8 py-16"
+        {/* Features */}
+        <section
+          id="features"
+          className="premium-features-section"
         >
-          <Sparkles
-            size={35}
-            className="mx-auto mb-6 text-amber-300"
-          />
+          <motion.div
+            className="premium-section-heading"
+            initial={
+              reducedMotion
+                ? false
+                : { opacity: 0, y: 25 }
+            }
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <div className="premium-section-label">
+              <Star size={15} />
+              EVERYTHING YOU NEED
+            </div>
 
-          <h2 className="text-4xl font-bold">
-            Small steps. Big dreams.
-          </h2>
+            <h2>
+              Productivity, but make it
+              <span> magical.</span>
+            </h2>
 
-          <p className="mx-auto mt-6 max-w-xl leading-8 text-slate-300">
-            FocusFlow is your personal peaceful corner.
-            Whether you're studying for exams, working on
-            projects, or learning something new, we're here
-            to make the journey a little more magical.
-          </p>
-        </motion.div>
-      </section>
+            <p>
+              Powerful study tools wrapped in a calm,
+              beautiful, and immersive experience.
+            </p>
+          </motion.div>
 
-      {/* Footer */}
-      <footer className="relative z-10 border-t border-white/10 py-8 text-center text-sm text-slate-500">
-        © {new Date().getFullYear()} FocusFlow.
-        Made with ☕ and a little magic.
+          <div className="premium-feature-grid">
+            {features.map((feature, index) => {
+              const Icon = feature.icon;
+
+              return (
+                <motion.article
+                  key={feature.title}
+                  className={`premium-feature-card premium-tone-${feature.tone}`}
+                  initial={
+                    reducedMotion
+                      ? false
+                      : { opacity: 0, y: 35 }
+                  }
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.15 }}
+                  transition={{
+                    duration: 0.55,
+                    delay: (index % 3) * 0.09,
+                  }}
+                  whileHover={
+                    reducedMotion
+                      ? undefined
+                      : { y: -7 }
+                  }
+                >
+                  <div className="premium-feature-icon">
+                    <Icon size={25} />
+                  </div>
+
+                  <h3>{feature.title}</h3>
+                  <p>{feature.description}</p>
+
+                  <span className="premium-feature-corner">
+                    ✦
+                  </span>
+                </motion.article>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Experience */}
+        <section
+          id="experience"
+          className="premium-experience-section"
+        >
+          <motion.div
+            className="premium-experience-card"
+            initial={
+              reducedMotion
+                ? false
+                : { opacity: 0, y: 30 }
+            }
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7 }}
+          >
+            <div className="premium-experience-symbol">
+              <Moon size={36} />
+            </div>
+
+            <div className="premium-section-label">
+              YOUR SPACE. YOUR PACE.
+            </div>
+
+            <h2>
+              A calmer way to
+              <br />
+              <span>get things done.</span>
+            </h2>
+
+            <p>
+              Let the rain fall, turn on your favorite
+              sounds, and enjoy a peaceful study session
+              in your own little world.
+            </p>
+
+            <motion.button
+              type="button"
+              className="premium-primary-button"
+              onClick={openRoom}
+              whileHover={
+                reducedMotion
+                  ? undefined
+                  : { scale: 1.04 }
+              }
+              whileTap={{ scale: 0.97 }}
+            >
+              Enter Your Study Room
+              <ArrowRight size={18} />
+            </motion.button>
+          </motion.div>
+        </section>
+      </main>
+
+      <footer className="premium-footer">
+        <div className="premium-footer-brand">
+          <Moon size={18} />
+          FocusFlow
+        </div>
+
+        <p>
+          A little focus. A little magic. A better day. ♡
+        </p>
       </footer>
     </div>
   );
