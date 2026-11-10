@@ -10,7 +10,6 @@ import {
   Settings2,
   Bell,
   BellOff,
-  Coffee,
   Flame,
   CheckCircle2,
   X,

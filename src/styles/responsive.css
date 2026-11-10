@@ -1,0 +1,277 @@
+
+/* ==========================================
+   FOCUSFLOW — RESPONSIVE IMPROVEMENTS
+   ========================================== */
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 20px;
+}
+
+body {
+  min-width: 320px;
+  overflow-x: hidden;
+}
+
+#root {
+  min-height: 100vh;
+  width: 100%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+img,
+video,
+canvas {
+  max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #fcd34d;
+  outline-offset: 3px;
+}
+
+/* Prevent wide content from breaking layouts */
+
+.study-scene,
+.task-planner,
+.ambient-panel,
+.cat-companion-panel,
+.dashboard-panel {
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* ==========================================
+   TABLETS — UP TO 1024PX
+   ========================================== */
+
+@media (max-width: 1024px) {
+  .dashboard-main {
+    padding: 30px 22px 50px;
+  }
+
+  .dashboard-content-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-stats-grid {
+    grid-template-columns: repeat(
+      2,
+      minmax(0, 1fr)
+    );
+  }
+
+  .dashboard-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================
+   MOBILE — UP TO 640PX
+   ========================================== */
+
+@media (max-width: 640px) {
+  html {
+    scroll-padding-top: 10px;
+  }
+
+  .dashboard-main {
+    padding: 22px 14px 40px;
+  }
+
+  .dashboard-welcome h1 {
+    font-size: 30px;
+    line-height: 1.2;
+  }
+
+  .dashboard-description {
+    font-size: 13px;
+  }
+
+  .dashboard-stats-grid {
+    grid-template-columns: repeat(
+      2,
+      minmax(0, 1fr)
+    );
+    gap: 10px;
+  }
+
+  .dashboard-stat-card {
+    padding: 15px;
+    border-radius: 17px;
+  }
+
+  .dashboard-stat-value {
+    font-size: 23px;
+    overflow-wrap: anywhere;
+  }
+
+  .dashboard-stat-subtitle {
+    font-size: 10px;
+    line-height: 1.5;
+  }
+
+  .dashboard-panel {
+    padding: 17px;
+    border-radius: 18px;
+  }
+
+  .dashboard-panel-heading h2 {
+    font-size: 15px;
+  }
+
+  .dashboard-chart {
+    height: 250px;
+    padding-left: 30px;
+  }
+
+  .dashboard-chart-grid {
+    bottom: 40px;
+  }
+
+  .dashboard-chart-grid span::after {
+    left: 30px;
+  }
+
+  .dashboard-bar-track {
+    height: 210px;
+  }
+
+  .dashboard-chart-columns {
+    gap: 5px;
+  }
+
+  .dashboard-day-label,
+  .dashboard-day-value {
+    font-size: 9px;
+  }
+
+  .dashboard-goal-ring {
+    width: 195px;
+    height: 195px;
+  }
+
+  .dashboard-mini-stats {
+    gap: 9px;
+  }
+
+  .dashboard-mini-stats > div {
+    padding: 13px;
+  }
+
+  .dashboard-mini-stats strong {
+    font-size: 19px;
+  }
+
+  .task-planner,
+  .ambient-panel,
+  .cat-companion-panel {
+    padding: 16px;
+    border-radius: 19px;
+  }
+
+  .task-planner-header,
+  .ambient-header,
+  .cat-panel-header {
+    flex-wrap: wrap;
+  }
+
+  .cat-animation-area {
+    min-height: 245px;
+  }
+
+  .cat-character {
+    font-size: 78px;
+  }
+
+  .ambient-play-button {
+    min-width: 100%;
+  }
+
+  .task-list-heading {
+    flex-wrap: wrap;
+  }
+
+  .study-scene {
+    max-width: 100%;
+  }
+}
+
+/* ==========================================
+   SMALL PHONES — UP TO 380PX
+   ========================================== */
+
+@media (max-width: 380px) {
+  .dashboard-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-stat-card {
+    padding: 18px;
+  }
+
+  .dashboard-mini-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .cat-actions {
+    gap: 5px;
+  }
+
+  .cat-action-button {
+    font-size: 10px;
+    padding: 10px 4px;
+  }
+}
+
+/* ==========================================
+   ACCESSIBILITY
+   ========================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Touchscreen controls */
+
+@media (pointer: coarse) {
+  button,
+  input[type="range"] {
+    touch-action: manipulation;
+  }
+
+  .task-icon-button,
+  .cat-name-action {
+    min-width: 40px;
+    min-height: 40px;
+  }
+}

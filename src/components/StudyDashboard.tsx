@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "motion/react";
 import { useNavigate } from "react-router-dom";
+import StorageManager from "./StorageManager";
 import {
   ArrowLeft,
   ArrowRight,
@@ -624,6 +625,9 @@ export default function StudyDashboard() {
         <p className="dashboard-footer-note">
           🌙 Small steps, peaceful progress, brighter days.
         </p>
+        <div className="mt-6">
+  <StorageManager />
+</div>
       </main>
     </div>
   );
