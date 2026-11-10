@@ -1,33 +1,37 @@
 
 import type { LittleNote } from "./littleNotes";
 
-export const SECRET_VAULT_KEY = "focusflow_secret_vault_v1";
+export const VAULT_KEY = "focusflow_secret_vault_v1";
+export const LEGACY_KEY = "focusflow_my_little_notes_v1";
 
-const LEGACY_NOTES_KEY = "focusflow_my_little_notes_v1";
 const ITERATIONS = 600_000;
+const encoder = new TextEncoder();
+const decoder = new TextDecoder();
 
-type VaultData = {
+type Envelope = {
   version: 1;
   salt: string;
   iv: string;
   ciphertext: string;
 };
 
-const encoder = new TextEncoder();
-const decoder = new TextDecoder();
+export type VaultSession = {
+  key: CryptoKey;
+  notes: LittleNote[];
+};
 
-function toBase64(bytes: Uint8Array): string {
-  let binary = "";
+function encode64(data: Uint8Array): string {
+  let text = "";
 
-  for (const byte of bytes) {
-    binary += String.fromCharCode(byte);
+  for (const byte of data) {
+    text += String.fromCharCode(byte);
   }
 
-  return btoa(binary);
+  return btoa(text);
 }
 
-function fromBase64(value: string): Uint8Array<ArrayBuffer> {
-  const binary = atob(value);
+function decode64(text: string): Uint8Array<ArrayBuffer> {
+  const binary = atob(text);
   const bytes = new Uint8Array(new ArrayBuffer(binary.length));
 
   for (let i = 0; i < binary.length; i++) {
@@ -37,17 +41,108 @@ function fromBase64(value: string): Uint8Array<ArrayBuffer> {
   return bytes;
 }
 
-function randomBytes(length: number): Uint8Array<ArrayBuffer> {
-  const bytes = new Uint8Array(new ArrayBuffer(length));
+function randomBytes(size: number): Uint8Array<ArrayBuffer> {
+  const bytes = new Uint8Array(new ArrayBuffer(size));
   crypto.getRandomValues(bytes);
   return bytes;
 }
 
-async function deriveKey(
+function validateNotes(value: unknown): LittleNote[] {
+  if (!Array.isArray(value)) {
+    throw new Error("Saved postcards are not an array.");
+  }
+
+  const themes = [
+    "pink",
+    "lavender",
+    "peach",
+    "mint",
+    "cream",
+    "blue",
+    "rose",
+    "lilac",
+    "butter",
+    "sage",
+    "sky",
+    "coral",
+    "cotton",
+    "matcha",
+    "dusty",
+    "periwinkle",
+    "strawberry",
+    "vanilla",
+    "seafoam",
+    "dreamy",
+  ];
+
+  for (const item of value) {
+    if (
+      !item ||
+      typeof item !== "object" ||
+      typeof item.id !== "string" ||
+      typeof item.title !== "string" ||
+      typeof item.message !== "string" ||
+      !themes.includes(item.theme) ||
+      typeof item.sticker !== "string" ||
+      typeof item.favorite !== "boolean" ||
+      typeof item.createdAt !== "number" ||
+      typeof item.updatedAt !== "number"
+    ) {
+      throw new Error(
+        "Saved postcards contain invalid data. Nothing was deleted."
+      );
+    }
+  }
+
+  return value as LittleNote[];
+}
+
+function readEnvelope(): Envelope | null {
+  const raw = localStorage.getItem(VAULT_KEY);
+
+  if (raw === null) return null;
+
+  const value: unknown = JSON.parse(raw);
+
+  if (!value || typeof value !== "object") {
+    throw new Error("Invalid vault data.");
+  }
+
+  const data = value as Record<string, unknown>;
+
+  if (
+    data.version !== 1 ||
+    typeof data.salt !== "string" ||
+    typeof data.iv !== "string" ||
+    typeof data.ciphertext !== "string"
+  ) {
+    throw new Error(
+      "Invalid vault format. Original data was not changed."
+    );
+  }
+
+  return data as Envelope;
+}
+
+export function vaultExists(): boolean {
+  return localStorage.getItem(VAULT_KEY) !== null;
+}
+
+export function legacyExists(): boolean {
+  return localStorage.getItem(LEGACY_KEY) !== null;
+}
+
+function readLegacy(): LittleNote[] {
+  const raw = localStorage.getItem(LEGACY_KEY);
+
+  return raw === null ? [] : validateNotes(JSON.parse(raw));
+}
+
+async function derive(
   password: string,
   salt: Uint8Array<ArrayBuffer>
 ): Promise<CryptoKey> {
-  const passwordKey = await crypto.subtle.importKey(
+  const base = await crypto.subtle.importKey(
     "raw",
     encoder.encode(password),
     "PBKDF2",
@@ -62,7 +157,7 @@ async function deriveKey(
       iterations: ITERATIONS,
       hash: "SHA-256",
     },
-    passwordKey,
+    base,
     {
       name: "AES-GCM",
       length: 256,
@@ -72,14 +167,232 @@ async function deriveKey(
   );
 }
 
-function parseVault(raw: string): VaultData {
-  const parsed: unknown = JSON.parse(raw);
+async function decrypt(
+  data: Envelope,
+  key: CryptoKey
+): Promise<LittleNote[]> {
+  const plaintext = await crypto.subtle.decrypt(
+    {
+      name: "AES-GCM",
+      iv: decode64(data.iv),
+    },
+    key,
+    decode64(data.ciphertext)
+  );
 
-  if (!parsed || typeof parsed !== "object") {
-    throw new Error("Invalid vault data.");
+  return validateNotes(JSON.parse(decoder.decode(plaintext)));
+}
+
+async function encrypt(
+  notes: LittleNote[],
+  key: CryptoKey,
+  salt: string
+): Promise<Envelope> {
+  validateNotes(notes);
+
+  const iv = randomBytes(12);
+
+  const ciphertext = await crypto.subtle.encrypt(
+    {
+      name: "AES-GCM",
+      iv,
+    },
+    key,
+    encoder.encode(JSON.stringify(notes))
+  );
+
+  return {
+    version: 1,
+    salt,
+    iv: encode64(iv),
+    ciphertext: encode64(new Uint8Array(ciphertext)),
+  };
+}
+
+async function writeVerified(
+  notes: LittleNote[],
+  key: CryptoKey,
+  salt: string
+): Promise<void> {
+  const envelope = await encrypt(notes, key, salt);
+  const checked = await decrypt(envelope, key);
+
+  if (JSON.stringify(checked) !== JSON.stringify(notes)) {
+    throw new Error(
+      "Encryption verification failed. Nothing was saved."
+    );
   }
 
-  const data = parsed as Record<string, unknown>;
+  localStorage.setItem(VAULT_KEY, JSON.stringify(envelope));
+
+  const stored = readEnvelope();
+
+  if (
+    !stored ||
+    JSON.stringify(await decrypt(stored, key)) !==
+      JSON.stringify(notes)
+  ) {
+    throw new Error(
+      "Stored vault verification failed. Keep your backup."
+    );
+  }
+}
+
+export async function createVault(
+  password: string
+): Promise<VaultSession> {
+  if (password.length < 12) {
+    throw new Error("Use at least 12 characters.");
+  }
+
+  if (vaultExists()) {
+    throw new Error(
+      "A vault already exists. Unlock it instead."
+    );
+  }
+
+  const notes = readLegacy();
+  const salt = randomBytes(16);
+  const key = await derive(password, salt);
+
+  await writeVerified(notes, key, encode64(salt));
+
+  // Remove plaintext only after verifying encryption.
+  if (legacyExists()) {
+    localStorage.removeItem(LEGACY_KEY);
+  }
+
+  return { key, notes };
+}
+
+export async function unlockVault(
+  password: string
+): Promise<VaultSession> {
+  const envelope = readEnvelope();
+
+  if (!envelope) {
+    throw new Error("No vault exists yet.");
+  }
+
+  try {
+    const key = await derive(
+      password,
+      decode64(envelope.salt)
+    );
+
+    const notes = await decrypt(envelope, key);
+
+    return { key, notes };
+  } catch {
+    throw new Error(
+      "Incorrect password or damaged vault. No data was deleted."
+    );
+  }
+}
+
+export async function saveVaultNotes(
+  notes: LittleNote[],
+  key: CryptoKey
+): Promise<void> {
+  const current = readEnvelope();
+
+  if (!current) {
+    throw new Error(
+      "Vault is missing. Your changes were not saved."
+    );
+  }
+
+  // Verify the key before writing.
+  await decrypt(current, key);
+
+  await writeVerified(notes, key, current.salt);
+}
+
+export async function migrateLegacyNotes(
+  key: CryptoKey
+): Promise<LittleNote[]> {
+  const current = readEnvelope();
+
+  if (!current) {
+    throw new Error("Vault is missing.");
+  }
+
+  const existing = await decrypt(current, key);
+
+  if (!legacyExists()) return existing;
+
+  const legacy = readLegacy();
+  const merged = [...existing];
+
+  const existingIds = new Set(
+    existing.map((note) => note.id)
+  );
+
+  for (const note of legacy) {
+    if (!existingIds.has(note.id)) {
+      merged.push(note);
+      existingIds.add(note.id);
+    } else {
+      const match = existing.find(
+        (item) => item.id === note.id
+      );
+
+      if (
+        match &&
+        JSON.stringify(match) !== JSON.stringify(note)
+      ) {
+        throw new Error(
+          "Conflicting postcard IDs found. Original plaintext notes were preserved."
+        );
+      }
+    }
+  }
+
+  await writeVerified(merged, key, current.salt);
+
+  const stored = readEnvelope();
+
+  if (!stored) {
+    throw new Error("Migration verification failed.");
+  }
+
+  const verified = await decrypt(stored, key);
+
+  if (
+    !legacy.every((note) =>
+      verified.some(
+        (item) =>
+          JSON.stringify(item) === JSON.stringify(note)
+      )
+    )
+  ) {
+    throw new Error(
+      "Migration verification failed. Original notes were preserved."
+    );
+  }
+
+  localStorage.removeItem(LEGACY_KEY);
+
+  return verified;
+}
+
+// ======================================
+// ENCRYPTED BACKUP & RESTORE
+// ======================================
+
+export type VaultBackup = {
+  format: "focusflow-encrypted-vault-backup";
+  backupVersion: 1;
+  exportedAt: string;
+  vault: Envelope;
+};
+
+function parseEnvelope(value: unknown): Envelope {
+  if (!value || typeof value !== "object") {
+    throw new Error("Invalid encrypted vault backup.");
+  }
+
+  const data = value as Record<string, unknown>;
 
   if (
     data.version !== 1 ||
@@ -87,221 +400,152 @@ function parseVault(raw: string): VaultData {
     typeof data.iv !== "string" ||
     typeof data.ciphertext !== "string"
   ) {
-    throw new Error("Invalid vault format.");
+    throw new Error(
+      "Unsupported or damaged encrypted vault backup."
+    );
   }
 
-  return data as VaultData;
-}
+  const salt = decode64(data.salt);
+  const iv = decode64(data.iv);
+  const ciphertext = decode64(data.ciphertext);
 
-export function vaultExists(): boolean {
-  return localStorage.getItem(SECRET_VAULT_KEY) !== null;
-}
-
-export function hasLegacyNotes(): boolean {
-  return localStorage.getItem(LEGACY_NOTES_KEY) !== null;
-}
-
-export function loadLegacyNotes(): LittleNote[] {
-  const raw = localStorage.getItem(LEGACY_NOTES_KEY);
-
-  if (!raw) return [];
-
-  const parsed: unknown = JSON.parse(raw);
-
-  if (!Array.isArray(parsed)) {
-    throw new Error("Existing notes have an invalid format.");
+  if (
+    salt.length !== 16 ||
+    iv.length !== 12 ||
+    ciphertext.length < 16
+  ) {
+    throw new Error(
+      "Invalid encrypted vault parameters."
+    );
   }
 
-  return parsed as LittleNote[];
+  return data as Envelope;
 }
 
-async function encryptNotes(
-  notes: LittleNote[],
-  password: string,
-  salt?: Uint8Array<ArrayBuffer>
-): Promise<VaultData> {
-  const actualSalt = salt ?? randomBytes(16);
-  const iv = randomBytes(12);
+// Export the encrypted vault as JSON.
+export function exportEncryptedVault(): string {
+  const raw = localStorage.getItem(VAULT_KEY);
 
-  const key = await deriveKey(password, actualSalt);
+  if (!raw) {
+    throw new Error(
+      "No encrypted vault found to back up."
+    );
+  }
 
-  const plaintext = encoder.encode(JSON.stringify(notes));
-
-  const encrypted = await crypto.subtle.encrypt(
-    {
-      name: "AES-GCM",
-      iv,
-    },
-    key,
-    plaintext
+  const vault = parseEnvelope(
+    JSON.parse(raw) as unknown
   );
 
+  const backup: VaultBackup = {
+    format: "focusflow-encrypted-vault-backup",
+    backupVersion: 1,
+    exportedAt: new Date().toISOString(),
+    vault,
+  };
+
+  return JSON.stringify(backup, null, 2);
+}
+
+// Check backup and password before restoring.
+export async function inspectEncryptedBackup(
+  fileText: string,
+  password: string
+): Promise<{
+  vault: Envelope;
+  count: number;
+}> {
+  if (fileText.length > 15_000_000) {
+    throw new Error("Backup file is too large.");
+  }
+
+  const parsed: unknown = JSON.parse(fileText);
+
+  if (!parsed || typeof parsed !== "object") {
+    throw new Error("Invalid backup file.");
+  }
+
+  const backup = parsed as Record<string, unknown>;
+
+  if (
+    backup.format !== "focusflow-encrypted-vault-backup" ||
+    backup.backupVersion !== 1
+  ) {
+    throw new Error(
+      "This is not a supported FocusFlow encrypted backup."
+    );
+  }
+
+  const vault = parseEnvelope(backup.vault);
+
+  const key = await derive(
+    password,
+    decode64(vault.salt)
+  );
+
+  let notes: LittleNote[];
+
+  try {
+    notes = await decrypt(vault, key);
+  } catch {
+    throw new Error(
+      "Incorrect backup password or damaged backup. Nothing was changed."
+    );
+  }
+
   return {
-    version: 1,
-    salt: toBase64(actualSalt),
-    iv: toBase64(new Uint8Array(encrypted.byteLength > 0 ? iv : iv)),
-    ciphertext: toBase64(new Uint8Array(encrypted)),
+    vault,
+    count: notes.length,
   };
 }
 
-async function decryptNotes(
-  data: VaultData,
+// Restore encrypted postcards safely.
+export async function restoreEncryptedVault(
+  fileText: string,
   password: string
-): Promise<LittleNote[]> {
-  const salt = fromBase64(data.salt);
-  const iv = fromBase64(data.iv);
-  const ciphertext = fromBase64(data.ciphertext);
+): Promise<number> {
+  const { vault, count } =
+    await inspectEncryptedBackup(fileText, password);
 
-  const key = await deriveKey(password, salt);
-
-  const decrypted = await crypto.subtle.decrypt(
-    {
-      name: "AES-GCM",
-      iv,
-    },
-    key,
-    ciphertext
-  );
-
-  const parsed: unknown = JSON.parse(
-    decoder.decode(decrypted)
-  );
-
-  if (!Array.isArray(parsed)) {
-    throw new Error("Decrypted vault is invalid.");
-  }
-
-  return parsed as LittleNote[];
-}
-
-export async function createVault(
-  password: string,
-  notes: LittleNote[] = []
-): Promise<void> {
-  if (password.length < 12) {
-    throw new Error(
-      "Use a password with at least 12 characters."
-    );
-  }
-
-  if (vaultExists()) {
-    throw new Error("A private vault already exists.");
-  }
-
-  const encrypted = await encryptNotes(notes, password);
-
-  // Verify encryption before storing anything.
-  const verified = await decryptNotes(encrypted, password);
-
-  if (JSON.stringify(verified) !== JSON.stringify(notes)) {
-    throw new Error("Vault verification failed.");
-  }
-
-  localStorage.setItem(
-    SECRET_VAULT_KEY,
-    JSON.stringify(encrypted)
-  );
-}
-
-export async function unlockVault(
-  password: string
-): Promise<LittleNote[]> {
-  const raw = localStorage.getItem(SECRET_VAULT_KEY);
-
-  if (!raw) {
-    throw new Error("No private vault exists.");
-  }
+  const previous = localStorage.getItem(VAULT_KEY);
+  const next = JSON.stringify(vault);
 
   try {
-    return await decryptNotes(parseVault(raw), password);
-  } catch {
-    throw new Error(
-      "Incorrect password or corrupted vault data."
-    );
-  }
-}
+    localStorage.setItem(VAULT_KEY, next);
 
-export async function saveVaultNotes(
-  notes: LittleNote[],
-  password: string
-): Promise<void> {
-  const raw = localStorage.getItem(SECRET_VAULT_KEY);
+    const stored = readEnvelope();
 
-  if (!raw) {
-    throw new Error("Unlock or create your vault first.");
-  }
-
-  const current = parseVault(raw);
-
-  // Verify the password before replacing encrypted data.
-  await decryptNotes(current, password);
-
-  const encrypted = await encryptNotes(
-    notes,
-    password,
-    fromBase64(current.salt)
-  );
-
-  const verified = await decryptNotes(encrypted, password);
-
-  if (JSON.stringify(verified) !== JSON.stringify(notes)) {
-    throw new Error("Encrypted save verification failed.");
-  }
-
-  localStorage.setItem(
-    SECRET_VAULT_KEY,
-    JSON.stringify(encrypted)
-  );
-}
-
-export async function migrateLegacyNotes(
-  password: string
-): Promise<LittleNote[]> {
-  const legacyRaw = localStorage.getItem(LEGACY_NOTES_KEY);
-
-  if (!legacyRaw) {
-    return unlockVault(password);
-  }
-
-  const legacyNotes = loadLegacyNotes();
-
-  if (!vaultExists()) {
-    await createVault(password, legacyNotes);
-  } else {
-    const existingNotes = await unlockVault(password);
-
-    const merged = [...existingNotes];
-    const existingIds = new Set(
-      existingNotes.map((note) => note.id)
-    );
-
-    for (const note of legacyNotes) {
-      if (!existingIds.has(note.id)) {
-        merged.push(note);
-      }
+    if (!stored) {
+      throw new Error(
+        "Restored vault could not be read."
+      );
     }
 
-    await saveVaultNotes(merged, password);
-  }
-
-  const verified = await unlockVault(password);
-
-  const verifiedIds = new Set(
-    verified.map((note) => note.id)
-  );
-
-  const allMigrated = legacyNotes.every(
-    (note) => verifiedIds.has(note.id)
-  );
-
-  if (!allMigrated) {
-    throw new Error(
-      "Migration verification failed. Original notes were preserved."
+    const key = await derive(
+      password,
+      decode64(stored.salt)
     );
+
+    const notes = await decrypt(stored, key);
+
+    if (notes.length !== count) {
+      throw new Error(
+        "Restored postcard count mismatch."
+      );
+    }
+
+    return count;
+  } catch (error) {
+    // Restore previous vault if import fails.
+    try {
+      if (previous === null) {
+        localStorage.removeItem(VAULT_KEY);
+      } else {
+        localStorage.setItem(VAULT_KEY, previous);
+      }
+    } catch {
+      // Keep the original backup file.
+    }
+
+    throw error;
   }
-
-  // Only remove readable notes after encrypted verification.
-  localStorage.removeItem(LEGACY_NOTES_KEY);
-
-  return verified;
 }

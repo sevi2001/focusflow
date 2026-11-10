@@ -1,480 +1,251 @@
-
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { motion } from "motion/react";
-import {
-  Heart,
-  KeyRound,
-  LockKeyhole,
-  ShieldCheck,
-  Sparkles,
-  UnlockKeyhole,
-} from "lucide-react";
-
+import { Download, Heart, KeyRound, LockKeyhole, UnlockKeyhole, Upload } from "lucide-react";
 import MyLittleNotes from "./MyLittleNotes";
 import type { LittleNote } from "../lib/littleNotes";
-
 import {
-  createVault,
-  hasLegacyNotes,
-  loadLegacyNotes,
-  migrateLegacyNotes,
-  saveVaultNotes,
-  unlockVault,
-  vaultExists,
+  VAULT_KEY, LEGACY_KEY, createVault, exportEncryptedVault, inspectEncryptedBackup, restoreEncryptedVault, legacyExists,
+  migrateLegacyNotes, saveVaultNotes, unlockVault, vaultExists,
+  type VaultSession,
 } from "../lib/secretVault";
-
 import "./SecretLettersVault.css";
 
-type Session = {
-  password: string;
-  notes: LittleNote[];
-};
-
-const AUTO_LOCK_MS = 5 * 60 * 1000;
+const IDLE_MS = 5 * 60 * 1000;
 
 export default function SecretLettersVault() {
   const [exists, setExists] = useState(() => vaultExists());
-
-  const [session, setSession] = useState<Session | null>(null);
-
+  const [session, setSession] = useState<VaultSession | null>(null);
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-
+  const [confirm, setConfirm] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
+  const [notice, setNotice] = useState("");
+  const [revision, setRevision] = useState(0);
+  const sessionRef = useRef<VaultSession | null>(null);
+  const writingRef = useRef(false);
+  const [restoreFile, setRestoreFile] = useState<File | null>(null);
+  const [restorePassword, setRestorePassword] = useState("");
+  const [restoring, setRestoring] = useState(false);
+  const [backupStatus, setBackupStatus] = useState("");
 
-  const [legacyPresent, setLegacyPresent] = useState(
-    () => hasLegacyNotes()
-  );
+  const downloadBackup = () => {
+    try {
+      const json = exportEncryptedVault();
+      const blob = new Blob([json], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `focusflow-encrypted-postcards-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 30_000);
+      setBackupStatus("Encrypted backup downloaded. Keep it and your password safe.");
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Could not export backup.");
+    }
+  };
 
-  const activityRef = useRef(Date.now());
-  const busyRef = useRef(false);
+  const importBackup = async () => {
+    if (!restoreFile || !restorePassword || restoring) return;
+    setRestoring(true);
+    setError("");
+    setBackupStatus("");
+    try {
+      if (!window.isSecureContext || !crypto.subtle) throw new Error("HTTPS or localhost required.");
+      if (restoreFile.size > 15_000_000) throw new Error("Backup file is too large.");
+      const json = await restoreFile.text();
+      const inspected = await inspectEncryptedBackup(json, restorePassword);
+      if (vaultExists()) {
+        const accepted = window.confirm(
+          `This browser already has a private vault. Importing will REPLACE its saved postcards with ${inspected.count} postcards from the backup. Existing Vercel postcards could be lost. Cancel if you need to export the existing vault first. Continue?`
+        );
+        if (!accepted) return;
+      } else {
+        const accepted = window.confirm(
+          `Restore ${inspected.count} encrypted postcards to this browser? You will unlock them using your ORIGINAL localhost password.`
+        );
+        if (!accepted) return;
+      }
+      const count = await restoreEncryptedVault(json, restorePassword);
+      sessionRef.current = null;
+      setSession(null);
+      setExists(true);
+      setPassword("");
+      setConfirm("");
+      setRestorePassword("");
+      setRestoreFile(null);
+      setRevision(n => n + 1);
+      setBackupStatus(`Restored ${count} encrypted postcards. Unlock with your original password.`);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Restore failed. Existing vault was not intentionally replaced.");
+    } finally {
+      setRestoring(false);
+    }
+  };
 
-  const lockVault = useCallback(() => {
+  const lock = () => {
+    sessionRef.current = null;
     setSession(null);
     setPassword("");
-    setConfirmPassword("");
+    setConfirm("");
+    setNotice("");
     setError("");
-    setMessage("");
-  }, []);
+    setRevision(n => n + 1);
+  };
 
-  // Automatically lock the vault after five minutes
-  // without user activity.
   useEffect(() => {
     if (!session) return;
-
-    const recordActivity = () => {
-      activityRef.current = Date.now();
+    let timer: ReturnType<typeof setTimeout>;
+    const reset = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        sessionRef.current = null;
+        setSession(null);
+        setPassword("");
+        setNotice("");
+        setRevision(n => n + 1);
+      }, IDLE_MS);
     };
-
-    activityRef.current = Date.now();
-
-    const events = [
-      "pointerdown",
-      "keydown",
-      "touchstart",
-    ] as const;
-
-    events.forEach((eventName) => {
-      window.addEventListener(eventName, recordActivity);
-    });
-
-    const interval = window.setInterval(() => {
-      if (busyRef.current) return;
-
-      if (
-        Date.now() - activityRef.current >= AUTO_LOCK_MS
-      ) {
-        lockVault();
-      }
-    }, 10000);
-
+    const events = ["pointerdown", "keydown", "touchstart", "scroll"] as const;
+    events.forEach(event => window.addEventListener(event, reset, { passive: true }));
+    reset();
     return () => {
-      window.clearInterval(interval);
-
-      events.forEach((eventName) => {
-        window.removeEventListener(
-          eventName,
-          recordActivity
-        );
-      });
+      clearTimeout(timer);
+      events.forEach(event => window.removeEventListener(event, reset));
     };
-  }, [session !== null, lockVault]);
+  }, [session]);
 
-  // Lock when the browser tab becomes hidden.
   useEffect(() => {
-    const handleVisibility = () => {
-      if (document.visibilityState === "hidden") {
-        lockVault();
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === VAULT_KEY || event.key === LEGACY_KEY || event.key === null) {
+        sessionRef.current = null;
+        setSession(null);
+        setExists(vaultExists());
+        setPassword("");
+        setNotice("Storage changed in another tab. Please unlock again.");
+        setRevision(n => n + 1);
       }
     };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
 
-    document.addEventListener(
-      "visibilitychange",
-      handleVisibility
-    );
-
-    return () => {
-      document.removeEventListener(
-        "visibilitychange",
-        handleVisibility
-      );
-    };
-  }, [lockVault]);
-
-  const handleCreate = async (
-    event: React.FormEvent<HTMLFormElement>
-  ) => {
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
-    if (busyRef.current) return;
-
-    setError("");
-    setMessage("");
-
-    if (password.length < 12) {
-      setError(
-        "Please use a password with at least 12 characters."
-      );
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError("Your passwords do not match.");
-      return;
-    }
-
-    busyRef.current = true;
+    if (busy) return;
     setBusy(true);
-
+    setError("");
+    setNotice("");
     try {
-      if (vaultExists()) {
+      if (!window.isSecureContext || !crypto.subtle) {
+        throw new Error("Encryption requires HTTPS or localhost.");
+      }
+      let opened: VaultSession;
+      if (exists) {
+        opened = await unlockVault(password);
+        if (legacyExists()) {
+          const migrated = await migrateLegacyNotes(opened.key);
+          opened = { key: opened.key, notes: migrated };
+        }
+      } else {
+        if (password !== confirm) throw new Error("Passwords don't match.");
+        opened = await createVault(password);
         setExists(true);
-        throw new Error(
-          "A vault already exists. Please unlock it instead."
-        );
       }
-
-      // Read existing notes before creating the vault.
-      // If the old data is malformed, creation stops.
-      const oldNotes = hasLegacyNotes()
-        ? loadLegacyNotes()
-        : [];
-
-      await createVault(password, oldNotes);
-
-      // Verify that the encrypted vault can be opened.
-      const verifiedNotes = await unlockVault(password);
-
-      if (!Array.isArray(verifiedNotes)) {
-        throw new Error(
-          "Vault verification did not return a postcard collection."
-        );
-      }
-
-      // Migration verifies the encrypted copy before
-      // removing the old plaintext storage entry.
-      const migratedNotes = hasLegacyNotes()
-        ? await migrateLegacyNotes(password)
-        : verifiedNotes;
-
-      setSession({
-        password,
-        notes: migratedNotes,
-      });
-
-      setExists(true);
-      setLegacyPresent(hasLegacyNotes());
+      sessionRef.current = opened;
+      setSession(opened);
       setPassword("");
-      setConfirmPassword("");
-
-      setMessage("Your secret diary is ready! 💖");
-    } catch (err) {
-      setExists(vaultExists());
-
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Couldn't create your vault."
-      );
+      setConfirm("");
+      setRevision(n => n + 1);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Unable to open vault.");
     } finally {
-      busyRef.current = false;
       setBusy(false);
     }
   };
 
-  const handleUnlock = async (
-    event: React.FormEvent<HTMLFormElement>
-  ) => {
-    event.preventDefault();
-
-    if (busyRef.current) return;
-
-    setError("");
-    setMessage("");
-
-    busyRef.current = true;
-    setBusy(true);
-
+  const persist = async (notes: LittleNote[]): Promise<boolean> => {
+    const current = sessionRef.current;
+    if (!current || writingRef.current || !Array.isArray(notes)) return false;
+    writingRef.current = true;
     try {
-      const unlockedNotes = await unlockVault(password);
-
-      if (!Array.isArray(unlockedNotes)) {
-        throw new Error(
-          "Vault data is invalid. No notes were changed."
-        );
-      }
-
-      // Migrate any remaining old postcards after
-      // successfully unlocking the existing vault.
-      const notes = hasLegacyNotes()
-        ? await migrateLegacyNotes(password)
-        : unlockedNotes;
-
-      setSession({
-        password,
-        notes,
-      });
-
-      setLegacyPresent(hasLegacyNotes());
-      setPassword("");
-      setMessage("Welcome back to your secret garden! 🌷");
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Unable to unlock your diary."
-      );
-    } finally {
-      busyRef.current = false;
-      setBusy(false);
-    }
-  };
-
-  const handlePersist = async (
-    nextNotes: LittleNote[]
-  ): Promise<boolean> => {
-    if (!session || busyRef.current) return false;
-
-    busyRef.current = true;
-    setBusy(true);
-
-    try {
-      await saveVaultNotes(
-        nextNotes,
-        session.password
-      );
-
-      setSession((previous) =>
-        previous
-          ? { ...previous, notes: nextNotes }
-          : null
-      );
-
-      activityRef.current = Date.now();
+      await saveVaultNotes(notes, current.key);
+      if (sessionRef.current !== current) return false;
+      const updated = { key: current.key, notes };
+      sessionRef.current = updated;
+      setSession(updated);
       return true;
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Couldn't save encrypted postcards."
-      );
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Unable to save encrypted notes.");
       return false;
     } finally {
-      busyRef.current = false;
-      setBusy(false);
+      writingRef.current = false;
     }
   };
 
-  if (session) {
-    return (
-      <section className="secret-vault-unlocked">
-        <div className="secret-vault-toolbar">
-          <div>
-            <span className="secret-vault-eyebrow">
-              <ShieldCheck size={15} />
-              PRIVATE & ENCRYPTED
-            </span>
-
-            <h2>My Secret Letters 💌</h2>
-
-            <p>
-              Your private postcard garden is unlocked.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            className="secret-vault-lock-button"
-            onClick={lockVault}
-            disabled={busy}
-          >
-            <LockKeyhole size={17} />
-            Lock My Diary
-          </button>
-        </div>
-
-        {error && (
-          <p className="secret-vault-error" role="alert">
-            {error}
-          </p>
-        )}
-
-        <MyLittleNotes
-          initialNotes={session.notes}
-          onPersist={handlePersist}
-        />
-      </section>
-    );
-  }
-
   return (
-    <section className="secret-vault-section">
-      <motion.div
-        className="secret-vault-card"
-        initial={{ opacity: 0, y: 20, scale: 0.98 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.4 }}
-      >
-        <div className="secret-vault-decoration">
-          ✨ 🌸 ✨
-        </div>
-
-        <div className="secret-vault-icon">
-          {exists ? (
-            <LockKeyhole size={38} />
-          ) : (
-            <Heart size={38} />
+    <section className="secret-vault" aria-label="Private postcard vault">
+      {!session ? (
+        <motion.div className="secret-vault-panel" initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}>
+          <div className="secret-vault-illustration">💌<span>🔐</span></div>
+          <span className="secret-vault-kicker">YOUR PRIVATE LITTLE CORNER</span>
+          <h2>Secret Letters</h2>
+          <p className="secret-vault-description">
+            {exists ? "Your thoughts are safe behind a little golden lock. Enter your password to read them."
+              : "Create a secret password for your own encrypted postcard diary."}
+          </p>
+          {!exists && legacyExists() && (
+            <p className="secret-vault-warning">Existing postcards detected. Back them up first; creating the vault will encrypt and migrate them.</p>
           )}
-        </div>
-
-        <span className="secret-vault-eyebrow">
-          <Sparkles size={14} />
-          YOUR PRIVATE LITTLE WORLD
-        </span>
-
-        <h2>
-          {exists
-            ? "My Secret Letters"
-            : "Create Your Secret Diary"}
-        </h2>
-
-        <p className="secret-vault-description">
-          {exists
-            ? "A little garden of thoughts meant only for you. Enter your password to unlock your postcards."
-            : "Create a secret password to protect your precious memories, dreams, and little letters."}
-        </p>
-
-        {legacyPresent && (
-          <div className="secret-vault-migration">
-            💌 Existing postcards were found.
-            They will be moved into your encrypted
-            diary after successful verification.
+          <div className="secret-vault-backup" style={{ margin: "20px 0", padding: 16, border: "1px solid rgba(255,255,255,.2)", borderRadius: 14 }}>
+            <h3 style={{ marginTop: 0 }}>💌 Restore encrypted postcards</h3>
+            <p>Choose the backup exported from localhost, then enter the password used there. Importing replaces any vault already saved on this website.</p>
+            <input type="file" accept=".json,application/json" aria-label="Choose encrypted postcard backup"
+              onChange={e => setRestoreFile(e.target.files?.[0] ?? null)} />
+            <label htmlFor="restore-vault-password" style={{ display: "block", marginTop: 12 }}>Original vault password</label>
+            <input id="restore-vault-password" type="password" autoComplete="off"
+              value={restorePassword} onChange={e => setRestorePassword(e.target.value)} />
+            <button type="button" onClick={importBackup} disabled={!restoreFile || !restorePassword || restoring}
+              style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 12 }}>
+              <Upload size={17} /> {restoring ? "Verifying backup..." : "Restore encrypted backup"}
+            </button>
           </div>
-        )}
-
-        <form
-          className="secret-vault-form"
-          onSubmit={
-            exists ? handleUnlock : handleCreate
-          }
-        >
-          <label htmlFor="secret-vault-password">
-            <KeyRound size={15} />
-            Secret Password
-          </label>
-
-          <input
-            id="secret-vault-password"
-            type="password"
-            value={password}
-            onChange={(event) =>
-              setPassword(event.target.value)
-            }
-            placeholder="Enter your secret password"
-            autoComplete={
-              exists
-                ? "current-password"
-                : "new-password"
-            }
-            required
-            minLength={exists ? 1 : 12}
-          />
-
-          {!exists && (
-            <>
-              <label htmlFor="secret-vault-confirm">
-                <Heart size={15} />
-                Confirm Password
-              </label>
-
-              <input
-                id="secret-vault-confirm"
-                type="password"
-                value={confirmPassword}
-                onChange={(event) =>
-                  setConfirmPassword(
-                    event.target.value
-                  )
-                }
-                placeholder="Repeat your password"
-                autoComplete="new-password"
-                required
-                minLength={12}
-              />
-            </>
-          )}
-
-          {error && (
-            <p
-              className="secret-vault-error"
-              role="alert"
-            >
-              {error}
-            </p>
-          )}
-
-          {message && (
-            <p
-              className="secret-vault-message"
-              role="status"
-            >
-              {message}
-            </p>
-          )}
-
-          <button
-            type="submit"
-            className="secret-vault-submit"
-            disabled={busy}
-          >
-            {busy ? (
-              "Please wait..."
-            ) : exists ? (
-              <>
-                <UnlockKeyhole size={18} />
-                Unlock My Diary
-              </>
-            ) : (
-              <>
-                <LockKeyhole size={18} />
-                Create My Secret Diary
-              </>
-            )}
-          </button>
-        </form>
-
-        <p className="secret-vault-footer">
-          🔐 Your postcards are encrypted before
-          they're stored in this browser.
-        </p>
-
-        <p className="secret-vault-warning">
-          Keep your password safe. Forgotten passwords
-          cannot be recovered.
-        </p>
-      </motion.div>
+          {backupStatus && <p className="secret-vault-warning" role="status">{backupStatus}</p>}
+          <form className="secret-vault-form" onSubmit={submit}>
+            <label htmlFor="vault-password">{exists ? "Your secret password" : "Create a password (12+ characters)"}</label>
+            <input id="vault-password" type="password" autoComplete={exists ? "current-password" : "new-password"}
+              minLength={exists ? undefined : 12} required value={password}
+              onChange={e => setPassword(e.target.value)} placeholder="Your secret password" />
+            {!exists && <>
+              <label htmlFor="vault-confirm">Confirm password</label>
+              <input id="vault-confirm" type="password" autoComplete="new-password" minLength={12} required
+                value={confirm} onChange={e => setConfirm(e.target.value)} placeholder="Type your password again" />
+            </>}
+            <button type="submit" disabled={busy}>
+              {exists ? <UnlockKeyhole size={17} /> : <KeyRound size={17} />}
+              {busy ? "Please wait..." : exists ? "Unlock My Diary" : "Create My Secret Vault"}
+            </button>
+          </form>
+          {error && <p className="secret-vault-error" role="alert">{error}</p>}
+          {notice && <p className="secret-vault-warning" role="status">{notice}</p>}
+          <p className="secret-vault-footnote">🔒 Encrypted in this browser. No account or cross-device sync. Forgotten passwords cannot be recovered.</p>
+        </motion.div>
+      ) : (
+        <div>
+          <div className="secret-vault-unlocked">
+            <div><span>✦ PRIVATE GARDEN ✦</span><h2><Heart size={22} /> My Secret Letters</h2>
+              <p>Unlocked on this device · Automatically locks after 5 minutes of inactivity</p></div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+              <button type="button" onClick={downloadBackup}><Download size={17} /> Export Encrypted Backup</button>
+              <button type="button" onClick={lock}><LockKeyhole size={17} /> Lock My Diary</button>
+            </div>
+          </div>
+          {error && <p className="secret-vault-error" role="alert">{error}</p>}
+          {backupStatus && <p className="secret-vault-warning" role="status">{backupStatus}</p>}
+          <MyLittleNotes key={revision} initialNotes={session.notes} onPersist={persist} />
+        </div>
+      )}
     </section>
   );
 }
