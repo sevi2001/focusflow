@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { useNavigate } from "react-router-dom";
 import MagicalGirl from "./MagicalGirl";
+import StarsWallet from "./StarsWallet";
 import {
   ArrowLeft, ArrowRight, CalendarDays, CheckCircle2, ChevronLeft,
   ChevronRight, Clock3, Flame, Heart, Moon, Save, Sparkles,
@@ -36,6 +37,8 @@ function readTasks(): StoredTask[] {
     );
   } catch { return []; }
 }
+
+<StarsWallet />
 
 function formatTime(minutes: number) {
   const rounded = Math.round(minutes);

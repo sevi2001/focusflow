@@ -1,0 +1,77 @@
+
+.star-reward-toast {
+  position: fixed;
+  z-index: 9999;
+  right: 25px;
+  bottom: 25px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: min(360px, calc(100vw - 40px));
+  padding: 17px;
+  border: 1px solid rgba(252, 214, 140, 0.45);
+  border-radius: 19px;
+  background: linear-gradient(
+    135deg,
+    #393052,
+    #211e3d
+  );
+  color: white;
+  box-shadow:
+    0 20px 55px rgba(0, 0, 0, 0.35),
+    0 0 30px rgba(252, 214, 140, 0.1);
+}
+
+.star-reward-toast-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 52px;
+  width: 52px;
+  height: 52px;
+  border-radius: 15px;
+  color: #fcd68c;
+  background: rgba(252, 214, 140, 0.13);
+}
+
+.star-reward-toast-copy {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.star-reward-toast-copy strong {
+  font-size: 14px;
+  color: #fff1c1;
+}
+
+.star-reward-toast-copy span {
+  font-size: 12px;
+  color: #e4d8f8;
+}
+
+.star-reward-toast > button {
+  display: grid;
+  place-items: center;
+  align-self: flex-start;
+  padding: 4px;
+  border: none;
+  background: transparent;
+  color: #c8c0dd;
+  cursor: pointer;
+}
+
+@media (max-width: 480px) {
+  .star-reward-toast {
+    left: 20px;
+    right: 20px;
+    bottom: 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .star-reward-toast,
+  .star-reward-toast-icon {
+    animation: none;
+  }
+}

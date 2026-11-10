@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import "./DailyTaskPlanner.css";
+import { syncRewards } from "../lib/rewards";
 import {
   Check,
   CheckCircle2,
@@ -142,10 +143,14 @@ export default function DailyTaskPlanner() {
     };
   }, []);
 
-  // Save all tasks to Local Storage.
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
-  }, [tasks]);
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify(tasks)
+  );
+
+  syncRewards();
+}, [tasks]);
 
   // Only show today's tasks.
   const todayTasks = useMemo(
