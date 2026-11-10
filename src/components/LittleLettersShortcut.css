@@ -1,0 +1,64 @@
+
+.little-letters-shortcut {
+  position: fixed;
+  z-index: 100;
+  right: 24px;
+  bottom: 24px;
+}
+
+.little-letters-shortcut-link {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 68px;
+  height: 68px;
+  border: 1px solid rgba(255, 221, 236, 0.45);
+  border-radius: 23px;
+  background: linear-gradient(
+    145deg,
+    #ffe4ef,
+    #e9d8ff
+  );
+  box-shadow:
+    0 12px 35px rgba(19, 15, 41, 0.3),
+    0 0 30px rgba(255, 185, 220, 0.16);
+  text-decoration: none;
+  transition:
+    transform 0.25s,
+    box-shadow 0.25s;
+}
+
+.little-letters-shortcut-link:hover {
+  transform: scale(1.1) rotate(-6deg);
+  box-shadow:
+    0 15px 45px rgba(19, 15, 41, 0.4),
+    0 0 35px rgba(255, 185, 220, 0.3);
+}
+
+.little-letters-shortcut-link:focus-visible {
+  outline: 3px solid #c4b5fd;
+  outline-offset: 4px;
+}
+
+.little-letters-shortcut-link > span:first-child {
+  font-size: 34px;
+}
+
+.little-letters-shortcut-sparkle {
+  position: absolute;
+  top: -10px;
+  right: -9px;
+  font-size: 21px;
+}
+
+@media (max-width: 600px) {
+  .little-letters-shortcut {
+    right: 15px;
+    bottom: 15px;
+  }
+
+  .little-letters-shortcut-link {
+    width: 57px;
+    height: 57px;
+  }
+}

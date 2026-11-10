@@ -1,0 +1,385 @@
+
+/* FLOATING POSTCARD */
+
+.little-letter-floating {
+  width: 100%;
+  min-width: 0;
+}
+
+.little-letter-drift {
+  height: 100%;
+  transform-origin: center;
+}
+
+.little-letter-card {
+  --paper: #fff0f3;
+  --paper-border: #e9ccd4;
+  --ink: #765963;
+  --soft-ink: #a38991;
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 365px;
+  padding: 14px;
+  border: 1px solid var(--paper-border);
+  border-radius: 20px;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow:
+    0 13px 0 -7px rgba(75, 47, 71, 0.07),
+    0 22px 42px rgba(18, 15, 43, 0.2);
+  transition: box-shadow 0.3s;
+}
+
+.little-letter-card:hover {
+  box-shadow:
+    0 16px 0 -7px rgba(75, 47, 71, 0.07),
+    0 28px 55px rgba(18, 15, 43, 0.3);
+}
+
+/* COLOR THEMES */
+
+.little-letter-card.theme-pink {
+  --paper: #fff0f3;
+  --paper-border: #e9ccd4;
+  --ink: #765963;
+  --soft-ink: #a38991;
+}
+
+.little-letter-card.theme-lavender {
+  --paper: #f1ecff;
+  --paper-border: #d9cff4;
+  --ink: #675b85;
+  --soft-ink: #9588ae;
+}
+
+.little-letter-card.theme-peach {
+  --paper: #fff0df;
+  --paper-border: #f1d8bd;
+  --ink: #85634e;
+  --soft-ink: #ad8b72;
+}
+
+.little-letter-card.theme-mint {
+  --paper: #e9f7ed;
+  --paper-border: #c8e4d0;
+  --ink: #537762;
+  --soft-ink: #829d8b;
+}
+
+.little-letter-card.theme-cream {
+  --paper: #fff8e9;
+  --paper-border: #eadfbe;
+  --ink: #806a52;
+  --soft-ink: #ab987d;
+}
+
+.little-letter-card.theme-blue {
+  --paper: #eaf2ff;
+  --paper-border: #ccdbf2;
+  --ink: #526c8a;
+  --soft-ink: #8299b3;
+}
+
+/* 3D FLIP */
+
+.little-letter-flip-scene {
+  flex: 1;
+  min-height: 0;
+  perspective: 1100px;
+}
+
+.little-letter-flip-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+}
+
+.little-letter-face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 9px;
+  border-radius: 12px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.little-letter-front {
+  background:
+    radial-gradient(
+      circle at 85% 90%,
+      rgba(255, 255, 255, 0.8),
+      transparent 45%
+    );
+}
+
+.little-letter-back {
+  transform: rotateY(180deg);
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* FRONT */
+
+.little-letter-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.little-letter-avatar {
+  display: grid;
+  place-items: center;
+  flex: 0 0 52px;
+  width: 52px;
+  height: 52px;
+  border: 5px solid #fffdf8;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 5px 13px rgba(60, 30, 50, 0.12);
+  transform: rotate(-7deg);
+}
+
+.little-letter-avatar span {
+  font-size: 29px;
+}
+
+.little-letter-identity {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.little-letter-identity strong {
+  font-size: 15px;
+  font-weight: 850;
+}
+
+.little-letter-identity > span {
+  font-size: 10px;
+  color: var(--soft-ink);
+}
+
+.little-letter-stamp {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 57px;
+  gap: 3px;
+  height: 58px;
+  border: 1px dashed var(--paper-border);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.little-letter-stamp > span {
+  font-size: 23px;
+}
+
+.little-letter-stamp small {
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.little-letter-divider {
+  height: 1px;
+  flex-shrink: 0;
+  margin: 17px 0;
+  background: repeating-linear-gradient(
+    to right,
+    var(--paper-border) 0,
+    var(--paper-border) 7px,
+    transparent 7px,
+    transparent 15px
+  );
+}
+
+.little-letter-front-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+
+.little-letter-mini-title {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--soft-ink);
+}
+
+.little-letter-front-content p {
+  margin: 0;
+  font-family:
+    "Segoe Print",
+    "Comic Sans MS",
+    cursive;
+  font-size: 15px;
+  line-height: 1.75;
+  font-style: italic;
+  overflow-wrap: anywhere;
+}
+
+.little-letter-signature {
+  margin-top: auto;
+  align-self: flex-end;
+  font-family: "Segoe Print", cursive;
+  font-size: 12px;
+}
+
+.little-letter-stickers {
+  display: flex;
+  justify-content: space-between;
+  padding: 3px 10px 0;
+  font-size: 18px;
+}
+
+.little-letter-stickers span:nth-child(1) {
+  transform: rotate(-12deg);
+}
+
+.little-letter-stickers span:nth-child(2) {
+  transform: translateY(-6px);
+}
+
+.little-letter-stickers span:nth-child(3) {
+  transform: rotate(12deg);
+}
+
+/* BACK */
+
+.little-letter-back-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.little-letter-back-header > span:last-child {
+  font-size: 25px;
+}
+
+.little-letter-handwriting {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  font-family:
+    "Segoe Print",
+    "Comic Sans MS",
+    cursive;
+}
+
+.little-letter-handwriting strong {
+  font-size: 14px;
+}
+
+.little-letter-handwriting p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.little-letter-handwriting > span {
+  margin-top: auto;
+  align-self: flex-end;
+  font-size: 12px;
+  text-align: right;
+}
+
+.little-letter-back-stickers {
+  padding-top: 7px;
+  text-align: center;
+  font-size: 17px;
+}
+
+/* ACTIONS */
+
+.little-letter-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 12px;
+}
+
+.little-letter-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  height: 36px;
+  border: 1px solid var(--paper-border);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.55);
+  color: var(--ink);
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 750;
+  transition:
+    background 0.2s,
+    transform 0.2s;
+}
+
+.little-letter-actions button:hover {
+  transform: translateY(-2px);
+  background: #fff;
+}
+
+.little-letter-actions button:focus-visible {
+  outline: 3px solid #b69df5;
+  outline-offset: 2px;
+}
+
+.little-letter-open-button {
+  flex: 1;
+  font-size: 11px;
+}
+
+.little-letter-icon-button {
+  flex: 0 0 36px;
+}
+
+.little-letter-icon-button.is-favorite {
+  color: #e76d96;
+  background: #ffe4ec;
+}
+
+.little-letter-copied {
+  position: absolute;
+  right: 15px;
+  bottom: -24px;
+  color: #fff1bf;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  .little-letter-card {
+    height: 360px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .little-letter-card,
+  .little-letter-actions button {
+    transition: none;
+  }
+}
