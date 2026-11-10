@@ -1,314 +1,560 @@
 
-import { useCallback, useMemo, useState } from "react";
-import { motion } from "motion/react";
+import { useMemo, useState } from "react";
+import { motion, useReducedMotion } from "motion/react";
 import { useNavigate } from "react-router-dom";
-import DailyTaskPlanner from "./DailyTaskPlanner";
-import CatCompanion from "./CatCompanion";
-import { LayoutDashboard } from "lucide-react";
+
 import {
   ArrowLeft,
+  BarChart3,
   CloudRain,
+  CloudSun,
+  Heart,
   Lightbulb,
   Moon,
   Sparkles,
-  Volume2,
-  VolumeX,
+  Star,
+  Sun,
+  WandSparkles,
 } from "lucide-react";
 
 import PomodoroTimer from "./PomodoroTimer";
+import DailyTaskPlanner from "./DailyTaskPlanner";
+import CatCompanion from "./CatCompanion";
 import AmbientSounds from "./AmbientSounds";
 
 import "./StudyRoom.css";
 
+type SceneTheme = "rainy" | "starry" | "sunset";
+
+const sceneOptions: {
+  id: SceneTheme;
+  label: string;
+  icon: typeof Moon;
+}[] = [
+  { id: "rainy", label: "Rainy Night", icon: CloudRain },
+  { id: "starry", label: "Starry Night", icon: Moon },
+  { id: "sunset", label: "Golden Sunset", icon: CloudSun },
+];
+
 export default function StudyRoom() {
   const navigate = useNavigate();
+  const reducedMotion = useReducedMotion();
 
-  // Room controls
-  const [rainEnabled, setRainEnabled] = useState(true);
-  const [lampEnabled, setLampEnabled] = useState(true);
+  const [theme, setTheme] = useState<SceneTheme>("rainy");
+  const [rainOn, setRainOn] = useState(true);
+  const [lampOn, setLampOn] = useState(true);
+  const [fairyLightsOn, setFairyLightsOn] = useState(true);
+  const [isAmbientPlaying, setIsAmbientPlaying] = useState(false);
 
-  // Sound playback state
-  const [soundEnabled, setSoundEnabled] = useState(false);
-
-  // Keep AmbientSounds and the room button synchronized
-  const handleSoundChange = useCallback((playing: boolean) => {
-    setSoundEnabled(playing);
-  }, []);
-
-  // Animated raindrops
-  const raindrops = useMemo(
+  const stars = useMemo(
     () =>
-      Array.from({ length: 45 }, (_, index) => ({
-        id: index,
-        left: `${(index * 37.7) % 100}%`,
-        delay: `${(index * 0.31) % 3}s`,
-        duration: `${1 + (index % 5) * 0.22}s`,
+      Array.from({ length: 45 }, (_, i) => ({
+        id: i,
+        left: `${(i * 31.47 + 8) % 100}%`,
+        top: `${(i * 19.83 + 5) % 100}%`,
+        delay: `${(i * 0.37) % 5}s`,
       })),
     []
   );
 
+  const raindrops = useMemo(
+    () =>
+      Array.from({ length: 50 }, (_, i) => ({
+        id: i,
+        left: `${(i * 23.71) % 100}%`,
+        delay: `${(i * 0.19) % 2}s`,
+        duration: `${0.8 + (i % 4) * 0.18}s`,
+      })),
+    []
+  );
+
+  const fireflies = useMemo(
+    () =>
+      Array.from({ length: 14 }, (_, i) => ({
+        id: i,
+        left: `${(i * 17.37 + 12) % 100}%`,
+        top: `${(i * 29.19 + 7) % 90}%`,
+        delay: `${(i * 0.57) % 6}s`,
+      })),
+    []
+  );
+
+  const sceneTitle =
+    theme === "rainy"
+      ? "Cozy Rainy Night"
+      : theme === "starry"
+      ? "Dreamy Starry Night"
+      : "Golden Sunset";
+
   return (
-    <div className="min-h-screen bg-[#0b1020] text-white">
-      {/* ================= HEADER ================= */}
-      <header className="relative z-20 flex flex-wrap items-center justify-between gap-4 border-b border-white/10 bg-[#10162a] px-6 py-5">
+    <div className={`premium-study-page scene-${theme}`}>
+      {/* Ambient background */}
+      <div
+        className="premium-study-atmosphere"
+        aria-hidden="true"
+      >
+        <div className="study-ambient-orb orb-one" />
+        <div className="study-ambient-orb orb-two" />
 
-        {/* Back Home */}
-        <button
-          onClick={() => navigate("/")}
-          className="flex items-center gap-2 text-sm text-slate-300 transition hover:text-amber-200"
-        >
-          <ArrowLeft size={18} />
-          Back Home
-        </button>
-        <button
-  onClick={() => navigate("/dashboard")}
-  className="flex items-center gap-2 rounded-full border border-amber-300/30 bg-amber-300/10 px-4 py-2 text-sm font-medium text-amber-200 transition hover:bg-amber-300/20"
->
-  <LayoutDashboard size={18} />
-  Dashboard
-</button>
+        {stars.map((star) => (
+          <span
+            key={star.id}
+            className="study-background-star"
+            style={{
+              left: star.left,
+              top: star.top,
+              animationDelay: star.delay,
+            }}
+          />
+        ))}
 
-        {/* Logo */}
-        <div className="flex items-center gap-2 text-xl font-bold">
-          <Moon className="text-amber-300" />
+        {fireflies.map((fly) => (
+          <span
+            key={fly.id}
+            className="study-background-firefly"
+            style={{
+              left: fly.left,
+              top: fly.top,
+              animationDelay: fly.delay,
+            }}
+          />
+        ))}
+      </div>
 
-          <span>
-            Focus<span className="text-amber-300">Flow</span>
-          </span>
+      {/* Header */}
+      <header className="premium-study-header">
+        <div className="study-header-left">
+          <button
+            type="button"
+            className="study-back-button"
+            onClick={() => navigate("/")}
+            aria-label="Back to home"
+          >
+            <ArrowLeft size={19} />
+          </button>
+
+          <div className="study-brand">
+            <div className="study-brand-icon">
+              <Moon size={23} />
+            </div>
+
+            <div>
+              <strong>
+                Focus<span>Flow</span>
+              </strong>
+              <small>Your cozy little sanctuary</small>
+            </div>
+          </div>
         </div>
 
-        {/* Header Label */}
-        <span className="flex items-center gap-2 text-sm text-amber-200">
-          <Sparkles size={16} />
-          Your peaceful corner
-        </span>
+        <div className="study-header-right">
+          <div className="study-header-status">
+            <span className="study-status-dot" />
+            YOUR PEACEFUL SPACE
+          </div>
+
+          <button
+            type="button"
+            className="study-dashboard-link"
+            onClick={() => navigate("/dashboard")}
+          >
+            <BarChart3 size={18} />
+            <span>Dashboard</span>
+          </button>
+        </div>
       </header>
 
-      {/* ================= MAIN CONTENT ================= */}
-      <main className="mx-auto grid max-w-[1600px] gap-8 px-5 py-8 xl:grid-cols-[minmax(0,1fr)_380px]">
+      <main className="premium-study-container">
+        {/* Intro */}
+        <motion.section
+          className="study-welcome"
+          initial={
+            reducedMotion ? false : { opacity: 0, y: 20 }
+          }
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.65 }}
+        >
+          <div>
+            <div className="study-eyebrow">
+              <Sparkles size={15} />
+              YOUR LITTLE WORLD OF FOCUS
+            </div>
 
-        {/* ================= STUDY ROOM ================= */}
-        <section className="min-w-0">
-
-          {/* Room Title */}
-          <div className="mb-5">
-            <h1 className="text-3xl font-bold">
-              Rainy Night Study Room 🌙
+            <h1>
+              Welcome to your <span>happy place.</span>
             </h1>
 
-            <p className="mt-2 text-slate-400">
-              Get comfortable, take a deep breath, and enjoy
-              your focus time.
+            <p>
+              Make yourself comfortable, find your rhythm,
+              and let the little moments of progress add up.
             </p>
           </div>
 
-          {/* ================= ANIMATED SCENE ================= */}
-          <div className="study-scene">
+          <div className="study-welcome-badge">
+            <Heart size={19} />
+            One step at a time ♡
+          </div>
+        </motion.section>
 
-            {/* Wall Stars */}
-            <div className="scene-stars">
-              ✦ ✧ ✦
-            </div>
+        {/* Main layout */}
+        <div className="premium-study-layout">
+          {/* Left column */}
+          <div className="premium-study-main">
+            <motion.section
+              className="premium-scene-card"
+              initial={
+                reducedMotion
+                  ? false
+                  : { opacity: 0, y: 28 }
+              }
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                duration: 0.7,
+                delay: 0.12,
+              }}
+            >
+              {/* Scene toolbar */}
+              <div className="premium-scene-toolbar">
+                <div className="scene-toolbar-title">
+                  <div className="scene-title-icon">
+                    <WandSparkles size={19} />
+                  </div>
 
-            {/* ================= WINDOW ================= */}
-            <div className="study-window">
+                  <div>
+                    <h2>Your Cozy Study World</h2>
+                    <p>Make this little space your own</p>
+                  </div>
+                </div>
 
-              {/* Moon */}
-              <div className="window-moon" />
-
-              {/* Stars */}
-              <div className="window-stars">
-                ✦ &nbsp; ✧ &nbsp; ✦ &nbsp; ✧
+                <div className="scene-live-label">
+                  <span />
+                  LIVE SCENE
+                </div>
               </div>
 
-              {/* Animated Rain */}
-              {rainEnabled && (
-                <div className="rain-container">
-                  {raindrops.map((drop) => (
-                    <span
-                      key={drop.id}
-                      className="raindrop"
-                      style={{
-                        left: drop.left,
-                        animationDelay: drop.delay,
-                        animationDuration: drop.duration,
-                      }}
-                    />
+              {/* Scene themes */}
+              <div
+                className="premium-scene-themes"
+                role="group"
+                aria-label="Choose study room atmosphere"
+              >
+                {sceneOptions.map((option) => {
+                  const Icon = option.icon;
+
+                  return (
+                    <button
+                      type="button"
+                      key={option.id}
+                      className={
+                        theme === option.id ? "selected" : ""
+                      }
+                      onClick={() => setTheme(option.id)}
+                      aria-pressed={theme === option.id}
+                    >
+                      <Icon size={16} />
+                      {option.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Animated illustrated room */}
+              <div className="premium-study-scene">
+                <div className="scene-wall-glow" />
+
+                {/* Window */}
+                <div className="scene-window">
+                  <div className="scene-window-sky">
+                    <div className="scene-celestial-body" />
+
+                    {theme !== "sunset" && (
+                      <>
+                        <span className="scene-window-star s1">
+                          ✦
+                        </span>
+                        <span className="scene-window-star s2">
+                          ✧
+                        </span>
+                        <span className="scene-window-star s3">
+                          ✦
+                        </span>
+                        <span className="scene-window-star s4">
+                          ✧
+                        </span>
+                      </>
+                    )}
+
+                    {theme === "rainy" && rainOn && (
+                      <div className="scene-rain">
+                        {raindrops.map((drop) => (
+                          <span
+                            key={drop.id}
+                            className="scene-rain-drop"
+                            style={{
+                              left: drop.left,
+                              animationDelay: drop.delay,
+                              animationDuration: drop.duration,
+                            }}
+                          />
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="scene-mountain mountain-back" />
+                    <div className="scene-mountain mountain-front" />
+                  </div>
+
+                  <div className="scene-window-frame-v" />
+                  <div className="scene-window-frame-h" />
+                  <div className="scene-window-sill" />
+                </div>
+
+                {/* Fairy lights */}
+                <div
+                  className={`scene-fairy-lights ${
+                    fairyLightsOn ? "lights-on" : ""
+                  }`}
+                >
+                  {Array.from({ length: 8 }, (_, i) => (
+                    <span key={i} />
                   ))}
                 </div>
-              )}
 
-              {/* Window Frame */}
-              <div className="window-cross-horizontal" />
-              <div className="window-cross-vertical" />
-            </div>
+                {/* Shelf */}
+                <div className="scene-shelf">
+                  <div className="scene-shelf-items">
+                    <span>📚</span>
+                    <span>🪴</span>
+                    <span>🕯️</span>
+                  </div>
+                  <div className="scene-shelf-board" />
+                </div>
 
-            {/* ================= SHELF ================= */}
-            <div className="room-shelf">
-              <span>📚</span>
-              <span>🪴</span>
-              <span>🕯️</span>
-            </div>
+                {/* Wall decorations */}
+                <div className="scene-wall-poster">☁️</div>
+                <div className="scene-hanging-star">✦</div>
 
-            {/* ================= DESK ================= */}
-            <div className="study-desk">
-              <div className="desk-top" />
-              <div className="desk-front" />
-            </div>
+                {/* Desk */}
+                <div className="scene-desk">
+                  <div className="scene-desk-top" />
+                  <div className="scene-desk-front" />
+                  <div className="scene-desk-leg left" />
+                  <div className="scene-desk-leg right" />
+                </div>
 
-            {/* ================= LAPTOP ================= */}
-            <motion.div
-              className="study-laptop"
-              initial={{
-                opacity: 0,
-                y: 20,
-              }}
-              animate={{
-                opacity: 1,
-                y: 0,
-              }}
-              transition={{
-                duration: 0.8,
-              }}
-            >
-              <div className="laptop-screen">
-                <Moon size={35} />
-                <span>Focus Mode</span>
+                {/* Laptop */}
+                <div className="scene-laptop">
+                  <div className="scene-laptop-screen">
+                    <Moon size={28} />
+                    <span>Focus Mode</span>
+                  </div>
+                  <div className="scene-laptop-base" />
+                </div>
+
+                {/* Lamp */}
+                <div
+                  className={`scene-lamp ${
+                    lampOn ? "lamp-active" : ""
+                  }`}
+                >
+                  <div className="scene-lamp-glow" />
+                  <div className="scene-lamp-shade" />
+                  <div className="scene-lamp-neck" />
+                  <div className="scene-lamp-base" />
+                </div>
+
+                {/* Cat and decorations */}
+                <div className="scene-cat" aria-hidden="true">
+                  🐈
+                </div>
+
+                <div className="scene-mug" aria-hidden="true">
+                  ☕
+                </div>
+
+                <div className="scene-books" aria-hidden="true">
+                  📖
+                </div>
+
+                <div className="scene-floor" />
               </div>
 
-              <div className="laptop-base" />
+              {/* Scene footer */}
+              <div className="premium-scene-footer">
+                <div className="scene-current-label">
+                  {theme === "sunset" ? (
+                    <Sun size={18} />
+                  ) : theme === "rainy" ? (
+                    <CloudRain size={18} />
+                  ) : (
+                    <Moon size={18} />
+                  )}
+
+                  <div>
+                    <strong>{sceneTitle}</strong>
+                    <small>
+                      A peaceful moment, just for you
+                    </small>
+                  </div>
+                </div>
+
+                <div className="scene-control-buttons">
+                  <button
+                    type="button"
+                    onClick={() => setRainOn((v) => !v)}
+                    disabled={theme !== "rainy"}
+                    aria-label={
+                      rainOn ? "Turn rain off" : "Turn rain on"
+                    }
+                    aria-pressed={theme === "rainy" && rainOn}
+                    className={
+                      theme === "rainy" && rainOn
+                        ? "active"
+                        : ""
+                    }
+                  >
+                    <CloudRain size={18} />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setLampOn((v) => !v)}
+                    aria-label={
+                      lampOn ? "Turn lamp off" : "Turn lamp on"
+                    }
+                    aria-pressed={lampOn}
+                    className={lampOn ? "active" : ""}
+                  >
+                    <Lightbulb size={18} />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFairyLightsOn((v) => !v)
+                    }
+                    aria-label={
+                      fairyLightsOn
+                        ? "Turn fairy lights off"
+                        : "Turn fairy lights on"
+                    }
+                    aria-pressed={fairyLightsOn}
+                    className={
+                      fairyLightsOn ? "active" : ""
+                    }
+                  >
+                    <Star size={18} />
+                  </button>
+                </div>
+              </div>
+            </motion.section>
+
+            {/* Existing Daily Task Planner */}
+            <motion.div
+              className="premium-tool-wrapper"
+              initial={
+                reducedMotion
+                  ? false
+                  : { opacity: 0, y: 25 }
+              }
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.1 }}
+              transition={{ duration: 0.55 }}
+            >
+              <DailyTaskPlanner />
+            </motion.div>
+          </div>
+
+          {/* Right sidebar */}
+          <aside className="premium-study-sidebar">
+            <motion.div
+              className="premium-tool-wrapper"
+              initial={
+                reducedMotion
+                  ? false
+                  : { opacity: 0, x: 20 }
+              }
+              animate={{ opacity: 1, x: 0 }}
+              transition={{
+                duration: 0.6,
+                delay: 0.2,
+              }}
+            >
+              <PomodoroTimer />
             </motion.div>
 
-            {/* ================= DESK LAMP ================= */}
-            <div
-              className={`desk-lamp ${
-                lampEnabled ? "lamp-on" : "lamp-off"
-              }`}
-            >
-              <div className="lamp-glow" />
-              <div className="lamp-shade" />
-              <div className="lamp-stand" />
-              <div className="lamp-base" />
-            </div>
-
-            {/* ================= ANIMATED CAT ================= */}
-            {/* Cat companion decoration */}
-<div
-  className="study-cat"
-  role="img"
-  aria-label="Mochi's cozy spot"
->
-  🐾
-</div>
-
-            {/* Room Label */}
-            <div className="scene-label">
-              🌧️ Cozy Rainy Night
-            </div>
-          </div>
-
-          {/* ================= ROOM CONTROLS ================= */}
-          <div className="mt-6 flex flex-wrap gap-3">
-
-            {/* Rain Toggle */}
-            <button
-              onClick={() =>
-                setRainEnabled((previous) => !previous)
+            <motion.div
+              className="premium-tool-wrapper"
+              initial={
+                reducedMotion
+                  ? false
+                  : { opacity: 0, x: 20 }
               }
-              aria-pressed={rainEnabled}
-              className={`room-control ${
-                rainEnabled ? "room-control-active" : ""
-              }`}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{
+                duration: 0.6,
+                delay: 0.3,
+              }}
             >
-              <CloudRain size={19} />
-              Rain {rainEnabled ? "On" : "Off"}
-            </button>
+              <CatCompanion />
+            </motion.div>
 
-            {/* Lamp Toggle */}
-            <button
-              onClick={() =>
-                setLampEnabled((previous) => !previous)
+            <motion.div
+              className="premium-tool-wrapper"
+              initial={
+                reducedMotion
+                  ? false
+                  : { opacity: 0, x: 20 }
               }
-              aria-pressed={lampEnabled}
-              className={`room-control ${
-                lampEnabled ? "room-control-active" : ""
-              }`}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, amount: 0.1 }}
+              transition={{ duration: 0.6 }}
             >
-              <Lightbulb size={19} />
-              Lamp {lampEnabled ? "On" : "Off"}
-            </button>
-
-            {/* Sound Toggle */}
-            <button
-              onClick={() =>
-                setSoundEnabled((previous) => !previous)
-              }
-              aria-pressed={soundEnabled}
-              className={`room-control ${
-                soundEnabled ? "room-control-active" : ""
-              }`}
-            >
-              {soundEnabled ? (
-                <Volume2 size={19} />
-              ) : (
-                <VolumeX size={19} />
-              )}
-
-              Sound {soundEnabled ? "On" : "Off"}
-            </button>
-          </div>
-
-          {/* Room Information */}
-          <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-5">
-            <div className="flex items-center gap-3">
-              <Sparkles
-                size={21}
-                className="text-amber-300"
+              <AmbientSounds
+                isPlaying={isAmbientPlaying}
+                onPlayingChange={setIsAmbientPlaying}
               />
-{/* ================= DAILY TASK PLANNER ================= */}
-<div className="mt-8">
-  <DailyTaskPlanner />
-</div>
-              <div>
-                <h3 className="font-semibold text-white">
-                  Your Cozy Study Space
-                </h3>
+            </motion.div>
 
-                <p className="mt-1 text-sm text-slate-400">
-                  Customize your room atmosphere, play relaxing
-                  sounds, and stay focused on your goals.
-                </p>
+            {/* Motivation card */}
+            <motion.div
+              className="premium-motivation-card"
+              initial={
+                reducedMotion
+                  ? false
+                  : { opacity: 0, y: 20 }
+              }
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+            >
+              <div className="motivation-card-icon">
+                <Sparkles size={23} />
               </div>
-            </div>
+
+              <h3>A little reminder ♡</h3>
+
+              <p>
+                You don't have to do everything today.
+                Just take one little step, and let
+                yourself be proud of it.
+              </p>
+
+              <span>Keep glowing, little star ✨</span>
+            </motion.div>
+          </aside>
+        </div>
+
+        {/* Bottom message */}
+        <footer className="premium-study-footer">
+          <div>
+            <Moon size={17} />
+            FocusFlow
           </div>
-        </section>
 
-        {/* ================= RIGHT SIDEBAR ================= */}
-        <aside className="flex min-w-0 flex-col gap-5">
-  {/* Pomodoro Timer */}
-  <PomodoroTimer />
-
-  {/* Interactive Cat Companion */}
-  <CatCompanion />
-
-  {/* Ambient Sounds */}
-  <AmbientSounds
-    isPlaying={soundEnabled}
-    onPlayingChange={handleSoundChange}
-  />
-
-  {/* Motivation Card */}
-  <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-    <h3 className="mb-3 text-lg font-semibold text-amber-200">
-      ☕ A little reminder
-    </h3>
-
-    <p className="leading-7 text-slate-300">
-      Progress doesn't have to be perfect.
-      One focused session at a time is enough.
-    </p>
-  </div>
-</aside>
+          <span>
+            A little focus. A little magic. A better day.
+          </span>
+        </footer>
       </main>
     </div>
   );
