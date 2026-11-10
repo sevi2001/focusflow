@@ -1,6 +1,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
+import "./DailyTaskPlanner.css";
 import {
   Check,
   CheckCircle2,
