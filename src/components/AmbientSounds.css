@@ -1,0 +1,167 @@
+
+.ambient-panel {
+  width: 100%;
+  padding: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 26px;
+  background: rgba(21, 26, 48, 0.92);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(18px);
+}
+
+.ambient-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ambient-count {
+  flex-shrink: 0;
+  padding: 6px 10px;
+  border-radius: 30px;
+  background: rgba(252, 211, 77, 0.1);
+  color: #fcd34d;
+  font-size: 11px;
+}
+
+.ambient-sound-card {
+  padding: 17px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.035);
+  transition:
+    border-color 0.25s,
+    background 0.25s;
+}
+
+.ambient-sound-active {
+  border-color: rgba(252, 211, 77, 0.2);
+  background: rgba(252, 211, 77, 0.045);
+}
+
+.ambient-slider {
+  width: 100%;
+  min-width: 0;
+  height: 7px;
+  border-radius: 20px;
+  outline: none;
+  cursor: pointer;
+  accent-color: #fcd34d;
+  appearance: none;
+  -webkit-appearance: none;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.ambient-slider::-webkit-slider-thumb {
+  width: 16px;
+  height: 16px;
+  border: 3px solid #1b2037;
+  border-radius: 50%;
+  background: #fcd34d;
+  box-shadow: 0 0 10px rgba(252, 211, 77, 0.3);
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.ambient-slider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: 3px solid #1b2037;
+  border-radius: 50%;
+  background: #fcd34d;
+}
+
+.ambient-play-button {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 12px 18px;
+  border-radius: 999px;
+  background: #fcd34d;
+  color: #172033;
+  font-size: 13px;
+  font-weight: 700;
+  transition: background 0.2s;
+}
+
+.ambient-play-button:hover {
+  background: #fde68a;
+}
+
+.ambient-secondary-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #e2e8f0;
+  font-size: 13px;
+  transition: background 0.2s;
+}
+
+.ambient-secondary-button:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.ambient-equalizer {
+  display: flex;
+  height: 24px;
+  align-items: center;
+  gap: 3px;
+}
+
+.ambient-equalizer span {
+  width: 3px;
+  height: 7px;
+  border-radius: 3px;
+  background: #fcd34d;
+  animation: ambient-wave 0.9s ease-in-out infinite;
+}
+
+.ambient-equalizer span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.ambient-equalizer span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.ambient-equalizer span:nth-child(4) {
+  animation-delay: 0.45s;
+}
+
+@keyframes ambient-wave {
+  0%, 100% {
+    height: 5px;
+  }
+
+  50% {
+    height: 22px;
+  }
+}
+
+@media (max-width: 480px) {
+  .ambient-panel {
+    padding: 17px;
+  }
+
+  .ambient-header {
+    align-items: flex-start;
+  }
+
+  .ambient-sound-card {
+    padding: 13px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient-equalizer span {
+    animation: none;
+  }
+}
