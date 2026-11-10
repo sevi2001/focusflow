@@ -1,0 +1,406 @@
+
+/* =====================================
+   FOCUSFLOW — DREAM ROOM DECORATIONS
+===================================== */
+
+.dream-decorations {
+  width: 100%;
+  padding: 22px;
+  border: 1px solid rgba(196, 181, 253, 0.2);
+  border-radius: 24px;
+  background: linear-gradient(
+    145deg,
+    #23213f,
+    #171b33
+  );
+  color: #fff;
+  overflow: hidden;
+}
+
+.dream-decorations-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.dream-decorations-eyebrow {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: #fcd68c;
+}
+
+.dream-decorations-header h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 7px 0;
+  font-size: 21px;
+  font-weight: 800;
+}
+
+.dream-decorations-header h3 svg {
+  color: #fcd68c;
+}
+
+.dream-decorations-header p {
+  font-size: 12px;
+  color: #aaa7c5;
+}
+
+.dream-decorations-shop-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 11px 15px;
+  border-radius: 13px;
+  border: 1px solid rgba(252, 214, 140, 0.3);
+  background: rgba(252, 214, 140, 0.1);
+  color: #ffe6a4;
+  font-size: 12px;
+  font-weight: 750;
+  text-decoration: none;
+  transition: transform 0.25s;
+}
+
+.dream-decorations-shop-link:hover {
+  transform: translateY(-3px);
+}
+
+/* Room scene */
+
+.dream-decorations-scene {
+  position: relative;
+  isolation: isolate;
+  height: 350px;
+  overflow: hidden;
+  border-radius: 20px;
+  background: linear-gradient(
+    180deg,
+    #363057 0%,
+    #5b4b78 65%,
+    #473b61 65%,
+    #302a46 100%
+  );
+}
+
+.dream-decorations-wall {
+  position: absolute;
+  inset: 0 0 35%;
+  background:
+    radial-gradient(
+      circle at 15% 30%,
+      rgba(255, 220, 184, 0.07),
+      transparent 35%
+    );
+}
+
+/* Window */
+
+.dream-decorations-window {
+  position: absolute;
+  top: 40px;
+  right: 12%;
+  width: 115px;
+  height: 130px;
+  border: 8px solid #a58eac;
+  border-radius: 55px 55px 12px 12px;
+  background: linear-gradient(
+    180deg,
+    #191b40,
+    #39365f
+  );
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+}
+
+.dream-window-moon {
+  position: absolute;
+  top: 13px;
+  right: 16px;
+  font-size: 35px;
+  color: #fff0b8;
+}
+
+.dream-window-star {
+  position: absolute;
+  color: #ffe8aa;
+  font-size: 15px;
+  animation: dream-twinkle 3s infinite;
+}
+
+.dream-star-one {
+  top: 20px;
+  left: 15px;
+}
+
+.dream-star-two {
+  bottom: 30px;
+  left: 24px;
+  animation-delay: 0.8s;
+}
+
+.dream-star-three {
+  bottom: 18px;
+  right: 15px;
+  animation-delay: 1.5s;
+}
+
+/* Shelf */
+
+.dream-decorations-shelf {
+  position: absolute;
+  top: 80px;
+  left: 9%;
+  display: flex;
+  align-items: flex-end;
+  gap: 9px;
+  padding: 0 10px 7px;
+  border-bottom: 9px solid #a47d90;
+  font-size: 25px;
+}
+
+/* Fairy lights */
+
+.dream-fairy-lights {
+  position: absolute;
+  z-index: 5;
+  top: 5px;
+  left: 0;
+  width: 100%;
+  height: 80px;
+  pointer-events: none;
+}
+
+.dream-fairy-wire {
+  position: absolute;
+  top: 15px;
+  left: 8%;
+  width: 84%;
+  height: 38px;
+  border-bottom: 2px solid rgba(255, 218, 160, 0.55);
+  border-radius: 50%;
+}
+
+.dream-fairy-bulb {
+  position: absolute;
+  width: 11px;
+  height: 15px;
+  border-radius: 50% 50% 45% 45%;
+  background: #ffe6a6;
+  box-shadow:
+    0 0 10px #ffe6a6,
+    0 0 22px rgba(255, 215, 145, 0.75);
+}
+
+/* Desk */
+
+.dream-decorations-desk {
+  position: absolute;
+  z-index: 3;
+  bottom: 78px;
+  left: 17%;
+  width: 66%;
+  height: 18px;
+}
+
+.dream-desk-top {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  border-radius: 9px;
+  background: #c294a1;
+  box-shadow: 0 9px 0 #805e75;
+}
+
+.dream-desk-leg {
+  position: absolute;
+  top: 17px;
+  width: 14px;
+  height: 70px;
+  background: #805e75;
+}
+
+.dream-desk-leg-left {
+  left: 12px;
+}
+
+.dream-desk-leg-right {
+  right: 12px;
+}
+
+.dream-desk-book,
+.dream-desk-cup {
+  position: absolute;
+  z-index: 4;
+  bottom: 14px;
+  line-height: 1;
+}
+
+.dream-desk-book {
+  left: 42%;
+  font-size: 43px;
+}
+
+.dream-desk-cup {
+  right: 10%;
+  font-size: 30px;
+}
+
+/* Moon lamp */
+
+.dream-moon-lamp {
+  position: absolute;
+  z-index: 5;
+  bottom: 14px;
+  left: 10%;
+  width: 75px;
+  height: 85px;
+  display: grid;
+  place-items: center;
+}
+
+.dream-moon-glow {
+  position: absolute;
+  width: 85px;
+  height: 85px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 232, 160, 0.65),
+    rgba(255, 232, 160, 0.15) 45%,
+    transparent 75%
+  );
+  filter: blur(9px);
+}
+
+.dream-moon-symbol {
+  position: relative;
+  z-index: 2;
+  font-size: 57px;
+  filter: drop-shadow(
+    0 0 12px rgba(255, 236, 168, 0.9)
+  );
+}
+
+.dream-moon-base {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 42px;
+  height: 7px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: #d9b48b;
+}
+
+/* Plant */
+
+.dream-cozy-plant {
+  position: absolute;
+  z-index: 5;
+  bottom: 13px;
+  left: 9%;
+  line-height: 1;
+}
+
+.dream-cozy-plant span {
+  display: inline-block;
+  font-size: 69px;
+  transform-origin: bottom center;
+  filter: drop-shadow(0 5px 6px rgba(0, 0, 0, 0.2));
+}
+
+/* Rug */
+
+.dream-decorations-rug {
+  position: absolute;
+  z-index: 1;
+  bottom: 17px;
+  left: 26%;
+  width: 48%;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(228, 179, 214, 0.4);
+  box-shadow: 0 0 18px rgba(228, 179, 214, 0.12);
+}
+
+/* Scene label */
+
+.dream-decorations-label {
+  position: absolute;
+  z-index: 6;
+  bottom: 12px;
+  left: 50%;
+  width: max-content;
+  max-width: 90%;
+  padding: 8px 14px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: rgba(24, 22, 48, 0.87);
+  color: #fce7f3;
+  font-size: 11px;
+  text-align: center;
+}
+
+/* Footer */
+
+.dream-decorations-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+  color: #c4b5d8;
+  font-size: 12px;
+}
+
+@keyframes dream-twinkle {
+  0%, 100% {
+    opacity: 0.35;
+    transform: scale(0.8);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+@media (max-width: 600px) {
+  .dream-decorations {
+    padding: 15px;
+  }
+
+  .dream-decorations-scene {
+    height: 300px;
+  }
+
+  .dream-decorations-window {
+    right: 7%;
+    width: 95px;
+    height: 115px;
+  }
+
+  .dream-decorations-shelf {
+    left: 5%;
+    font-size: 20px;
+  }
+
+  .dream-decorations-desk {
+    left: 10%;
+    width: 80%;
+  }
+
+  .dream-decorations-label {
+    font-size: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dream-window-star {
+    animation: none;
+  }
+}

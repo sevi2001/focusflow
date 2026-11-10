@@ -2,6 +2,7 @@
 import { useMemo, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { useNavigate } from "react-router-dom";
+import DreamRoomDecorations from "./DreamRoomDecorations";
 
 import {
   ArrowLeft,
@@ -57,6 +58,8 @@ export default function StudyRoom() {
     []
   );
 
+  <DreamRoomDecorations />
+  
   const raindrops = useMemo(
     () =>
       Array.from({ length: 50 }, (_, i) => ({

@@ -1,0 +1,388 @@
+
+.magical-girl-card {
+  width: 100%;
+  padding: 22px;
+  border: 1px solid rgba(196,181,253,.2);
+  border-radius: 24px;
+  background: linear-gradient(145deg,#23213f,#171b33);
+  color: #fff;
+  overflow: hidden;
+}
+
+.magical-girl-header,
+.magical-girl-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.magical-girl-eyebrow {
+  color: #fcd68c;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+}
+
+.magical-girl-header h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 7px 0;
+  font-size: 21px;
+}
+
+.magical-girl-header h3 svg {
+  color: #fcd68c;
+}
+
+.magical-girl-header p {
+  color: #a9aac8;
+  font-size: 12px;
+}
+
+.magical-girl-status {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  background: rgba(252,214,140,.1);
+  color: #fcd68c;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.magical-girl-scene {
+  position: relative;
+  height: 360px;
+  margin: 20px 0;
+  border-radius: 20px;
+  overflow: hidden;
+  background: linear-gradient(180deg,#302c5a,#514778 68%,#373053);
+}
+
+.magical-girl-moon {
+  position: absolute;
+  top: 25px;
+  right: 35px;
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  background: #fff1bd;
+  box-shadow: 0 0 45px rgba(255,235,171,.6);
+}
+
+.magical-girl-window {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 115px;
+  height: 125px;
+  border: 7px solid #77668c;
+  border-radius: 55px 55px 12px 12px;
+  background: rgba(28,28,63,.45);
+}
+
+.magical-girl-window span {
+  position: absolute;
+  color: #fff1bd;
+}
+
+.magical-girl-window span:nth-child(1) { top: 18px; left: 18px; }
+.magical-girl-window span:nth-child(2) { top: 28px; right: 18px; }
+.magical-girl-window span:nth-child(3) { bottom: 20px; left: 30px; }
+
+.magical-girl-sparkles {
+  position: absolute;
+  top: 65px;
+  left: 35px;
+  color: #ffe8a6;
+  letter-spacing: 14px;
+  animation: magical-twinkle 3s infinite;
+}
+
+.magical-girl-character {
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  bottom: 64px;
+  width: 190px;
+  height: 245px;
+  transform: translateX(-50%);
+}
+
+/* Hair */
+
+.magical-girl-hair-back {
+  position: absolute;
+  top: 15px;
+  left: 35px;
+  width: 125px;
+  height: 155px;
+  border-radius: 65px 65px 40px 40px;
+  background: #49304e;
+}
+
+.magical-girl-head {
+  position: absolute;
+  top: 20px;
+  left: 43px;
+  width: 105px;
+  height: 115px;
+}
+
+.magical-girl-face {
+  position: absolute;
+  inset: 10px 5px 0;
+  border-radius: 45% 45% 48% 48%;
+  background: #f5c4a6;
+  box-shadow: inset -8px -5px rgba(202,126,115,.12);
+}
+
+.magical-girl-bangs {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 105px;
+  height: 42px;
+  border-radius: 60px 60px 25px 25px;
+  background: #49304e;
+}
+
+.magical-girl-hair-side {
+  position: absolute;
+  top: 25px;
+  width: 25px;
+  height: 105px;
+  border-radius: 25px;
+  background: #49304e;
+}
+
+.hair-left { left: -7px; transform: rotate(8deg); }
+.hair-right { right: -7px; transform: rotate(-8deg); }
+
+/* Face */
+
+.magical-girl-eye {
+  position: absolute;
+  top: 53px;
+  width: 8px;
+  height: 12px;
+  border-radius: 50%;
+  background: #35283f;
+}
+
+.eye-left { left: 26px; }
+.eye-right { right: 26px; }
+
+.magical-girl-blush {
+  position: absolute;
+  top: 72px;
+  width: 20px;
+  height: 9px;
+  border-radius: 50%;
+  background: rgba(244,113,142,.35);
+}
+
+.blush-left { left: 12px; }
+.blush-right { right: 12px; }
+
+.magical-girl-smile {
+  position: absolute;
+  top: 77px;
+  left: 44px;
+  width: 10px;
+  height: 6px;
+  border-bottom: 2px solid #9a5669;
+  border-radius: 50%;
+}
+
+/* Body and clothing */
+
+.magical-girl-neck {
+  position: absolute;
+  top: 126px;
+  left: 87px;
+  width: 18px;
+  height: 25px;
+  background: #eab398;
+}
+
+.magical-girl-body {
+  position: absolute;
+  top: 140px;
+  left: 30px;
+  width: 135px;
+  height: 105px;
+  overflow: hidden;
+  border-radius: 55px 55px 15px 15px;
+}
+
+.magical-girl-shirt {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg,#f9b8dc,#e88bbd);
+  transition: background .3s;
+}
+
+.magical-girl-shirt.is-lavender {
+  background: linear-gradient(135deg,#c4b5fd,#8b75db);
+}
+
+.magical-girl-collar {
+  position: absolute;
+  top: -9px;
+  left: 47px;
+  width: 42px;
+  height: 25px;
+  border-radius: 50%;
+  background: #f5c4a6;
+}
+
+/* Headphones */
+
+.headphone-band {
+  position: absolute;
+  top: -11px;
+  left: 0;
+  width: 105px;
+  height: 92px;
+  border: 9px solid #c4b5fd;
+  border-bottom: 0;
+  border-radius: 60px 60px 0 0;
+}
+
+.headphone-ear {
+  position: absolute;
+  top: 47px;
+  width: 22px;
+  height: 43px;
+  border-radius: 12px;
+  background: #a78bfa;
+  border: 4px solid #e9d5ff;
+}
+
+.headphone-ear.ear-left { left: -12px; transform: none; }
+.headphone-ear.ear-right { right: -12px; transform: none; }
+
+.magical-girl-flower {
+  position: absolute;
+  z-index: 5;
+  top: 9px;
+  right: -9px;
+  font-size: 32px;
+}
+
+/* Desk */
+
+.magical-girl-desk {
+  position: absolute;
+  z-index: 4;
+  bottom: 43px;
+  left: 0;
+  width: 100%;
+  height: 34px;
+  border-radius: 10px;
+  background: #a07884;
+  box-shadow: 0 10px 0 #6c4a61;
+}
+
+.magical-girl-book {
+  position: absolute;
+  bottom: 22px;
+  left: 25%;
+  font-size: 40px;
+}
+
+.magical-girl-cup {
+  position: absolute;
+  bottom: 22px;
+  right: 18%;
+  font-size: 30px;
+}
+
+.magical-girl-message {
+  position: absolute;
+  z-index: 6;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 90%;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(24,22,48,.85);
+  color: #fce7f3;
+  font-size: 11px;
+  text-align: center;
+}
+
+.magical-girl-footer {
+  color: #c4b5d8;
+  font-size: 12px;
+}
+
+.magical-girl-footer a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 13px;
+  border-radius: 12px;
+  background: rgba(196,181,253,.14);
+  color: #fcd68c;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+@keyframes magical-twinkle {
+  0%,100% { opacity: .4; }
+  50% { opacity: 1; }
+}
+
+@media (max-width: 480px) {
+  .magical-girl-card { padding: 15px; }
+  .magical-girl-header { flex-wrap: wrap; }
+  .magical-girl-scene { height: 330px; }
+  .magical-girl-character {
+    scale: .9;
+    transform-origin: bottom center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .magical-girl-sparkles {
+    animation: none;
+  }
+}
+/* Keep Lily centered while her animation plays */
+
+.magical-girl-character-position {
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  bottom: 64px;
+  width: 190px;
+  height: 245px;
+  transform: translateX(-50%);
+}
+
+.magical-girl-character-position .magical-girl-character {
+  position: relative;
+  inset: auto;
+  width: 190px;
+  height: 245px;
+  transform: none;
+}
+
+/* Ensure accessories appear above the hair */
+
+.magical-girl-headphones {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+}
+
+.magical-girl-flower {
+  z-index: 7;
+}

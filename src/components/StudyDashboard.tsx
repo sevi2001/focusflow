@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { useNavigate } from "react-router-dom";
+import MagicalGirl from "./MagicalGirl";
 import {
   ArrowLeft, ArrowRight, CalendarDays, CheckCircle2, ChevronLeft,
   ChevronRight, Clock3, Flame, Heart, Moon, Save, Sparkles,
@@ -75,6 +76,8 @@ function StudyGirl({ celebrating, onCheer }: { celebrating: boolean; onCheer: ()
     </motion.button>
   );
 }
+
+<MagicalGirl />
 
 export default function StudyDashboard() {
   const navigate = useNavigate();
