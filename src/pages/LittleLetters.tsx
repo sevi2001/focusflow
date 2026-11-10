@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { Link } from "react-router-dom";
-import MyLittleNotes from "../components/MyLittleNotes";
+import SecretLettersVault from "../components/SecretLettersVault";
 import {
   ArrowLeft,
   Heart,
@@ -257,7 +257,7 @@ export default function LittleLetters() {
           </div>
         )}
 
-<MyLittleNotes />
+<SecretLettersVault />
 
         {/* BOTTOM NOTE */}
         <footer className="little-letters-footer">

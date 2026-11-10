@@ -1,5 +1,5 @@
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import {
   Check,
@@ -13,27 +13,16 @@ import {
 } from "lucide-react";
 
 import {
-  loadLittleNotes,
-  saveLittleNotes,
+  NOTE_THEME_OPTIONS,
+  NOTE_STICKERS,
   type LittleNote,
   type NoteTheme,
 } from "../lib/littleNotes";
 
 import "./MyLittleNotes.css";
 
-const COLORS: { id: NoteTheme; label: string }[] = [
-  { id: "pink", label: "Blush Pink" },
-  { id: "lavender", label: "Lavender" },
-  { id: "peach", label: "Peach" },
-  { id: "mint", label: "Mint" },
-  { id: "cream", label: "Cream" },
-  { id: "blue", label: "Baby Blue" },
-];
-
-const STICKERS = [
-  "🎀", "🌷", "🐱", "🍓", "🌙", "🦋",
-  "⭐", "🧸", "💌", "☕", "🌸", "🐻",
-];
+const COLORS = NOTE_THEME_OPTIONS;
+const STICKERS = NOTE_STICKERS;
 
 type EditorData = {
   title: string;
@@ -57,12 +46,15 @@ function createId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
-export default function MyLittleNotes() {
+type Props = {
+  initialNotes: LittleNote[];
+  onPersist: (notes: LittleNote[]) => Promise<boolean>;
+};
+
+export default function MyLittleNotes({ initialNotes, onPersist }: Props) {
   const reducedMotion = useReducedMotion();
 
-  const [notes, setNotes] = useState<LittleNote[]>(
-    () => loadLittleNotes()
-  );
+  const [notes, setNotes] = useState<LittleNote[]>(initialNotes);
 
   const [editor, setEditor] = useState<EditorData>(
     emptyEditor
@@ -77,18 +69,19 @@ export default function MyLittleNotes() {
   const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [status, setStatus] = useState("");
 
-  // Read-only initialization above prevents overwriting saved
-  // notes with an empty array when the component first mounts.
+  // Notes are supplied only after the encrypted vault is unlocked.
 
   const visibleNotes = useMemo(() => {
-    const filtered = favoritesOnly
-      ? notes.filter((note) => note.favorite)
-      : notes;
+  const safeNotes = Array.isArray(notes) ? notes : [];
 
-    return [...filtered].sort(
-      (a, b) => b.updatedAt - a.updatedAt
-    );
-  }, [notes, favoritesOnly]);
+  const filtered = favoritesOnly
+    ? safeNotes.filter((note) => note.favorite)
+    : safeNotes;
+
+  return [...filtered].sort(
+    (a, b) => b.updatedAt - a.updatedAt
+  );
+}, [notes, favoritesOnly]);
 
   const updateEditor = <K extends keyof EditorData>(
     key: K,
@@ -135,7 +128,7 @@ export default function MyLittleNotes() {
     setEditor(emptyEditor());
   };
 
-  const saveNote = () => {
+  const saveNote = async () => {
     const title = editor.title.trim();
     const message = editor.message.trim();
 
@@ -166,7 +159,7 @@ export default function MyLittleNotes() {
         )
       : [note, ...notes];
 
-    if (!saveLittleNotes(next)) {
+    if (!(await onPersist(next))) {
       setStatus(
         "Couldn't save your note. Check browser storage and try again."
       );
@@ -178,21 +171,21 @@ export default function MyLittleNotes() {
     setStatus("Your little postcard was saved! 💖");
   };
 
-  const toggleFavorite = (id: string) => {
+  const toggleFavorite = async (id: string) => {
     const next = notes.map((note) =>
       note.id === id
         ? { ...note, favorite: !note.favorite }
         : note
     );
 
-    if (saveLittleNotes(next)) {
+    if (await onPersist(next)) {
       setNotes(next);
     } else {
       setStatus("Couldn't update favorites.");
     }
   };
 
-  const deleteNote = (id: string) => {
+  const deleteNote = async (id: string) => {
     const note = notes.find((item) => item.id === id);
     if (!note) return;
 
@@ -206,31 +199,13 @@ export default function MyLittleNotes() {
 
     const next = notes.filter((item) => item.id !== id);
 
-    if (saveLittleNotes(next)) {
+    if (await onPersist(next)) {
       setNotes(next);
       setStatus("Postcard deleted.");
     } else {
       setStatus("Couldn't delete this postcard.");
     }
   };
-
-  useEffect(() => {
-    const handleStorage = (event: StorageEvent) => {
-      if (
-        event.key === "focusflow_my_little_notes_v1"
-      ) {
-        setNotes(loadLittleNotes());
-      }
-    };
-
-    window.addEventListener("storage", handleStorage);
-
-    return () =>
-      window.removeEventListener(
-        "storage",
-        handleStorage
-      );
-  }, []);
 
   return (
     <section className="my-notes-section" id="my-little-notes">

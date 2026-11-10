@@ -542,3 +542,127 @@
     scroll-behavior: auto;
   }
 }
+
+/* =====================================
+   EXTRA PASTEL THEMES — 14 NEW COLORS
+   Compatible with NOTE_THEME_OPTIONS
+===================================== */
+
+.my-notes-colors {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 10px;
+  width: 100%;
+  max-height: none;
+  overflow: visible;
+  padding: 5px;
+}
+
+.my-notes-color {
+  flex: 0 0 37px;
+  transition: transform 160ms ease;
+}
+
+.my-notes-color:hover {
+  transform: translateY(-2px);
+}
+
+.my-notes-color.color-rose { background: #ffe0e8; }
+.my-notes-color.color-lilac { background: #e9dfff; }
+.my-notes-color.color-butter { background: #fff4bd; }
+.my-notes-color.color-sage { background: #e1efdf; }
+.my-notes-color.color-sky { background: #d9f0ff; }
+.my-notes-color.color-coral { background: #ffe0d7; }
+.my-notes-color.color-cotton { background: #f9e5ff; }
+.my-notes-color.color-matcha { background: #e8f1ce; }
+.my-notes-color.color-dusty { background: #f3dce3; }
+.my-notes-color.color-periwinkle { background: #dfe5ff; }
+.my-notes-color.color-strawberry { background: #ffd3df; }
+.my-notes-color.color-vanilla { background: #fff3d8; }
+.my-notes-color.color-seafoam { background: #d7f5ec; }
+.my-notes-color.color-dreamy { background: #e5d5ff; }
+
+.my-notes-paper.paper-rose {
+  --paper: #ffe0e8;
+  --paper-border: #efb6c7;
+  --paper-ink: #8b5067;
+}
+.my-notes-paper.paper-lilac {
+  --paper: #e9dfff;
+  --paper-border: #c9b5f2;
+  --paper-ink: #69538a;
+}
+.my-notes-paper.paper-butter {
+  --paper: #fff4bd;
+  --paper-border: #e7d784;
+  --paper-ink: #807039;
+}
+.my-notes-paper.paper-sage {
+  --paper: #e1efdf;
+  --paper-border: #b9d4b4;
+  --paper-ink: #557153;
+}
+.my-notes-paper.paper-sky {
+  --paper: #d9f0ff;
+  --paper-border: #a9d4ed;
+  --paper-ink: #4b7591;
+}
+.my-notes-paper.paper-coral {
+  --paper: #ffe0d7;
+  --paper-border: #f0bfb0;
+  --paper-ink: #916052;
+}
+.my-notes-paper.paper-cotton {
+  --paper: #f9e5ff;
+  --paper-border: #e6bde9;
+  --paper-ink: #855b8e;
+}
+.my-notes-paper.paper-matcha {
+  --paper: #e8f1ce;
+  --paper-border: #cbdca3;
+  --paper-ink: #657647;
+}
+.my-notes-paper.paper-dusty {
+  --paper: #f3dce3;
+  --paper-border: #deb9c5;
+  --paper-ink: #875d6b;
+}
+.my-notes-paper.paper-periwinkle {
+  --paper: #dfe5ff;
+  --paper-border: #bbc5f1;
+  --paper-ink: #5b6590;
+}
+.my-notes-paper.paper-strawberry {
+  --paper: #ffd3df;
+  --paper-border: #f1acbf;
+  --paper-ink: #945367;
+}
+.my-notes-paper.paper-vanilla {
+  --paper: #fff3d8;
+  --paper-border: #e8d5aa;
+  --paper-ink: #806d4c;
+}
+.my-notes-paper.paper-seafoam {
+  --paper: #d7f5ec;
+  --paper-border: #a6ddcf;
+  --paper-ink: #4e7c70;
+}
+.my-notes-paper.paper-dreamy {
+  --paper: #e5d5ff;
+  --paper-border: #c6aaed;
+  --paper-ink: #70558d;
+}
+
+/* Keep the larger sticker collection easy to browse. */
+.my-notes-stickers {
+  max-height: 205px;
+  overflow-y: auto;
+  padding: 6px;
+  scrollbar-width: thin;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .my-notes-color { transition: none; }
+  .my-notes-color:hover { transform: none; }
+}
